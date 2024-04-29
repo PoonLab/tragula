@@ -1,30 +1,39 @@
 from Bio import Entrez
 import argparse
 import sys
+import json
 
 description = """
 Query PubMed for a given author name and retrieve title, abstract and keywords.
-Write the results to a text file, one article per line.
+Write the results to a JSON file.
 """
 
 
 def extract(article):
 	""" Extract abstract text, title and keywords from article record """
 	# parse title and abstract text
-	medline = article["MedlineCitation"]["Article"]
-	title = medline["ArticleTitle"]
-	abstract = medline.get("Abstract", None)
+	medline = article["MedlineCitation"]
+	article = medline["Article"]
+	authors = []
+	for aut in article["AuthorList"]:
+		if "CollectiveName" in aut:
+			authors.append(aut["CollectiveName"])
+		else:
+			authors.append(f"{aut['ForeName']} {aut['LastName']}")
+	title = article["ArticleTitle"]
+	abstract = article.get("Abstract", None)
 	abstext = ""
 	if abstract:
 		abstext = ' '.join([str(entry) for entry in abstract["AbstractText"]])
 	
 	# parse keywords
-	keylist = article["MedlineCitation"]["KeywordList"]
+	keylist = medline["KeywordList"]
 	keywords = []
 	for el in keylist:
 		keywords.extend([str(kw) for kw in el])
 
-	return f"{title} {abstext} {' '.join(keywords)}"
+	return {'pmid': str(medline["PMID"]), 'authors': authors, 'title': title,
+			'abstract': abstext, 'keywords': keywords}
 
 
 def fetch(query, retmax=100):
@@ -50,5 +59,7 @@ if __name__ == "__main__":
 	
 	Entrez.email = args.email
 	articles = fetch(args.query, retmax=args.retmax)
-	for article in articles:
-		args.outfile.write(f"{extract(article)}\n")
+	records = [extract(art) for art in articles]
+	sys.stderr.write(f"Retrieved {len(records)} records (limit {args.retmax})\n")
+	json.dump(records, args.outfile, indent=2)
+
