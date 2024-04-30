@@ -3,6 +3,7 @@ import argparse
 import sys
 import json
 
+# TODO: convert .bib file to JSON?
 description = """
 Query PubMed for a given author name and retrieve title, abstract and keywords.
 Write the results to a JSON file.

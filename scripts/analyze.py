@@ -11,9 +11,9 @@ import csv
 description = """
 Tokenize article text for all author-specific JSON files in a given 
 folder.  Export word co-occurrence as sparse matrix, and author 
-word frequency vectors as a second file.  If no output files are 
-specified, then the script will write all word frequencies to stdout 
-in CSV format.
+word frequency vectors as a second file.  If --counts and --matrix are 
+not specified, then the script will write all word frequencies to the path
+specified in --index (defaults to stdout).
 """
 
 # tags to exclude
@@ -27,36 +27,24 @@ xtags = {
     ":", "(", ")", ",", "."  # punctuation
 }
 
-# words to exclude
-xwords = {
-    "", "we", "is", "are", "were", "that", "have", "can", "which", "may", "also",
-    "a", "<", ">", "=", "%", "was", "using", "be", "more", "not", "our", "had",
-    "however", "p", "use", "their", "i", "/i", "used", "it", "has", "such", "t",
-    "other", "been", "n", "''", "``", "including", "its", "most", "when", "+",
-    "suggest", "significantly", "significant", "different", "show", "who",
-    "always", "study", "increased", "change", "result", "associated", "method",
-    "number", "high", "increase", "compared", "response", "showed",
-    "identified", "further", "found", "well", "examined", "specific", "novel",
-    "following", "sup", "/sup", "observed", "important", "there", "research",
-    "here", "evidence", "year", "month", "furthermore", "demonstrated",
-    "reduced", "several", "multiple", "measured", "recent", "new", "known",
-    "only", "[", "]", "review", "common", "revealed", "large", "assessed",
-    "approach", "shown", "indicate", "based", "no", "'", "decreased",
-    "caused", "due", "determine", "could", "previously", "often", "they",
-    "will", "same", "studied", "previous", "many", "understanding",
-    "lower", "included", "improved", "underlying", "then", "evaluate",
-    "required", "remains", "wa"
-}
-
 wordnet = WordNetLemmatizer()  # convert plural to singular
 numeric = re.compile("^-?[0-9]+\.?[0-9]*$")
 
 
-def process(files, debug=False):
+def load_xwords(path):
+    xwords = set()
+    with open(path) as handle:
+        for line in handle:
+            xwords.add(line.strip())
+    return xwords
+
+
+def process(files, xwords, debug=False):
     """
     Enumerate word co-occurrence across all texts, and track
     author-specific word frequencies.
     :param files:  list, paths to JSON files containing
+    :param xwords:  set, words to exclude
     :param debug:  bool, get global word counts only
     :returns:
       - by_author - dict, word counts by author
@@ -116,17 +104,21 @@ if __name__ == "__main__":
                         help="Path to write by-author word counts (JSON)")
     parser.add_argument("--matrix", type=argparse.FileType('w'), required=False,
                         help="Path to write co-occurrence sparse matrix (CSV)")
-    parser.add_argument("--index", type=argparse.FileType('w'), required=True,
+    parser.add_argument("--index", type=argparse.FileType('w'), default=sys.stdout,
                         help="Path to write indexed words for interpreting CSV output")
+    parser.add_argument("--xwords", type=str, default="data/exclude_words.txt",
+                        help="Path to text file containing words to exclude. "
+                             "Defaults to data/exclude_words.txt")
     args = parser.parse_args()
 
+    xwords = load_xwords(args.xwords)
     files = glob(os.path.join(args.indir, "*.json"))
-
     debug = False
     if args.counts is None or args.matrix is None:
         debug = True
 
-    all_words, by_author, by_document = process(files, debug=debug)
+    # where all the action happens!
+    all_words, by_author, by_document = process(files, xwords=xwords, debug=debug)
 
     # export indexed words
     intermed = [(count, word) for word, count in all_words.items()]
