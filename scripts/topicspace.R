@@ -1,3 +1,6 @@
+# python scripts/analyze.py --counts results/by_author.json --matrix \
+#  results/cooccur.csv --index results/index.csv data
+
 require(Matrix)
 require(irlba)
 require(transport)
