@@ -1,10 +1,10 @@
-# python scripts/analyze.py --counts results/by_author.json --matrix \
-#  results/cooccur.csv --index results/index.csv data
+# python scripts/analyze.py --counts results/by_author.json --matrix results/cooccur.csv --index results/index.csv data
 
 require(Matrix)
 require(irlba)
 require(transport)
 require(jsonlite)
+require(igraph)
 
 setwd("~/git/tragula")
 
@@ -41,13 +41,34 @@ n <- length(objs)
 # finally, calculate the pairwise Wasserstein distance matrix
 wdist <- matrix(0, nrow=n, ncol=n)
 for (i in 1:(n-1)) {
+  #print(i)
   for (j in (i+1):n) {
     wdist[i,j] <- wdist[j,i] <- wasserstein(objs[[i]], objs[[j]], prob=TRUE)
   }
 }
 
-mds <- cmdscale(wdist, k=2)
+# write matrix out to file
+rownames(wdist) <- names(objs)
+colnames(wdist) <- names(objs)
+write.csv(wdist, "results/wdist.csv")
 
+# project distance matrix into 2/3 dimensions
+mds <- cmdscale(wdist, k=4)
 par(mar=rep(2,4))
 plot(mds, type='n', bty='n', xaxt='n', yaxt='n', xlab=NA, ylab=NA)
 text(mds, labels=names(by.author), cex=0.7, xpd=NA)
+
+# bioinformatics/sequence analysis is the 3rd dimension...
+plot(mds[,3:4], type='n', bty='n', xaxt='n', yaxt='n', xlab=NA, ylab=NA)
+text(mds[,3:4], labels=names(by.author), cex=0.7, xpd=NA)
+
+# try network visualization instead
+hist(wdist[upper.tri(wdist)])
+#cutoff <- quantile(wdist[upper.tri(wdist)], 0.2)
+
+# everyone should be connected to at least one other 
+cutoff <- max(apply(wdist, 1, function(x) min(x[x>0]))) * 1.01
+
+adj.mat <- wdist < cutoff
+g <- graph_from_adjacency_matrix(adj.mat, mode="undirected", diag=F)
+plot(g)
