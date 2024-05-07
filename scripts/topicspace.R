@@ -5,6 +5,7 @@ require(irlba)
 require(transport)
 require(jsonlite)
 require(igraph)
+require(parallel)
 
 setwd("~/git/tragula")
 
@@ -40,6 +41,12 @@ n <- length(objs)
 
 # finally, calculate the pairwise Wasserstein distance matrix
 wdist <- matrix(0, nrow=n, ncol=n)
+res <- mclapply(1:(n-1), function(i) {
+  sapply((i+1):n, function(j) {
+    wasserstein(objs[[i]], objs[[j]], prob=TRUE)  
+  })
+}, mc.cores = 4)  # careful of RAM usage!
+
 for (i in 1:(n-1)) {
   #print(i)
   for (j in (i+1):n) {

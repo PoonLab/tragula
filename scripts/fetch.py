@@ -22,7 +22,7 @@ def extract(article):
         else:
             authors.append(f"{aut['ForeName']} {aut['LastName']}")
     title = article["ArticleTitle"]
-    if title.startswith("Author Correction"):
+    if title.startswith("Author Correction") or title.startswith("Correction:"):
         return None
     abstract = article.get("Abstract", None)
     abstext = ""
