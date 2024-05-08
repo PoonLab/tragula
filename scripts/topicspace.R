@@ -31,7 +31,7 @@ if (FALSE) {
 # try UMAP instead
 require(wordspace)
 #d1 <- wordspace::dist.matrix(t(sparse))
-d1 <- wordspace::dist.matrix(t(sparse)[1:1000,], as.dist=TRUE)
+d1 <- wordspace::dist.matrix(t(sparse)[1:5000,], as.dist=TRUE)
 
 require(uwot)
 u1 <- uwot::umap(d1, n_components = 3)
@@ -39,22 +39,44 @@ u1 <- uwot::umap(d1, n_components = 3)
 
 par(mar=rep(0, 4))
 plot(u1, type='n', bty='n', xaxt='n', yaxt='n', xlab=NA, ylab=NA)
-text(u1, labels=index$word[1:1000], cex=0.5)
+text(u1[1:5000,], labels=index$word[1:5000], cex=0.5)
 
 
 # load author-specific word counts
 by.author <- read_json("results/by_author.json", simplifyVector = TRUE)
 by.author <- sapply(by.author, unlist)  # more convenient named vectors
 
+if (FALSE) {
+  # top two words are negatively correlated
+  y <- sapply(by.author, function(a) 
+    ifelse(is.element("patient", names(a)), a[["patient"]]/length(a), NA))
+  x <- sapply(by.author, function(a) 
+    ifelse(is.element("cell", names(a)), a[["cell"]]/length(a), NA))
+  
+  plot(x,y, type='n', log='xy', bty='n', xlab="f(Cell)", ylab="f(Patient)")
+  text(x, y, labels=surname, cex=0.5, xpd=NA)
+  cor.test(x, y)  
+}
+
+
+fingerprint <- function(author) {
+  # a useful way of viewing each author's word frequency in UMAP space
+  idx <- match(index$word[1:5000], names(by.author[[author]]))
+  plot(u1, pch=19, cex=0.1, col='grey')
+  points(u1, cex=sqrt(by.author[[author]][idx])/2, pch=19, 
+         col=rgb(0,0,0,0.2))  
+}
+
+
 # map each author's word counts to global index and convert to a 
 # weighted point pattern (discrete probability distribution over a 
 # finite number of points in a continuous space)
 objs <- lapply(by.author, function(wordcounts) {
-  idx <- match(index$word, names(wordcounts))
+  idx <- match(index$word[1:5000], names(wordcounts))
   mass <- wordcounts[idx]
   mass[is.na(mass)] <- 0
   mass <- mass / sum(mass)
-  wpp(p1$x, mass=mass)
+  wpp(u1, mass=mass)
 })
 
 

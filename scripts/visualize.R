@@ -3,7 +3,7 @@ require(igraph)
 wdist <- read.csv("results/wdist.csv")
 
 # project distance matrix into 2/3 dimensions
-mds <- cmdscale(wdist, k=6)
+mds <- cmdscale(wdist, k=2)
 par(mar=rep(2,4))
 plot(mds, type='n', bty='n', xaxt='n', yaxt='n', xlab=NA, ylab=NA)
 text(mds, labels=names(by.author), cex=0.7, xpd=NA)
@@ -30,3 +30,6 @@ lc <- cluster_leiden(g, resolution_parameter=0.8)
 sizes(lc)
 plot(lc, g, vertex.shape="none", edge.width=2)
 
+make_ego_graph(g, order=3)
+
+knn.mat <- apply(wdist, 1, function(x) )
