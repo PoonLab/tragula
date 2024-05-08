@@ -20,7 +20,27 @@ index <- read.csv("results/index.csv")
 index <- index[!is.na(index$index), ]
 
 # PCA projection of word co-occurrence matrix
-p1 <- prcomp_irlba(t(sparse), n=8)
+if (FALSE) {
+  # this doesn't work very well!
+  p1 <- prcomp_irlba(t(sparse), n=8)
+  par(mar=c(5,5,1,1))
+  plot(p1$x[,3:4], type='n', bty='n')
+  text(p1$x[1:1000,3:4], labels=index$word[1:1000], cex=0.5)  
+}
+
+# try UMAP instead
+require(wordspace)
+#d1 <- wordspace::dist.matrix(t(sparse))
+d1 <- wordspace::dist.matrix(t(sparse)[1:1000,], as.dist=TRUE)
+
+require(uwot)
+u1 <- uwot::umap(d1, n_components = 3)
+
+
+par(mar=rep(0, 4))
+plot(u1, type='n', bty='n', xaxt='n', yaxt='n', xlab=NA, ylab=NA)
+text(u1, labels=index$word[1:1000], cex=0.5)
+
 
 # load author-specific word counts
 by.author <- read_json("results/by_author.json", simplifyVector = TRUE)
