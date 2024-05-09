@@ -4,38 +4,47 @@ require(Matrix)
 require(irlba)
 require(transport)
 require(jsonlite)
+require(wordspace)
+require(uwot)
 
+#setwd("~/git/tragula")
 
-setwd("~/git/tragula")
-
-# co-occurrence matrix
-ccm <- read.csv("results/cooccur.csv", header=F)
-
-# presence/absence seems to work better
-sparse <- sparseMatrix(i=ccm[,1], j=ccm[,2], x=1, index1=FALSE)
-#sparse <- sparseMatrix(i=ccm[,1], j=ccm[,2], x=ccm[,3], index1=FALSE)
-
-# load global index of all words
-index <- read.csv("results/index.csv")
-index <- index[!is.na(index$index), ]
-
-# PCA projection of word co-occurrence matrix
-if (FALSE) {
-  # this doesn't work very well!
-  p1 <- prcomp_irlba(t(sparse), n=8)
-  par(mar=c(5,5,1,1))
-  plot(p1$x[,3:4], type='n', bty='n')
-  text(p1$x[1:1000,3:4], labels=index$word[1:1000], cex=0.5)  
+#' topicspace
+#' Map the word-context co-occurrence matrix to a lower-dimensional space
+#' @param index.path:  character, path to CSV file with word index
+#' @param cooccur.path:  character, path to CSV file with co-occurrence counts
+#' @param max.words:  integer, maximum number of words to analyze
+#' @param n.comp:  integer, number of components for UMAP
+#' @param ...:  other arguments to pass to uwot::umap()
+#' @return matrix, UMAP coordinates for words
+topicspace <- function(index.path, cooccur.path, 
+                       max.words=5000, n.comp=3, ...) {
+  # load global index of all words
+  index <- read.csv(index.path)
+  # check file integrity
+  stopifnot(
+    is.element(c("word", "count"), names(index)),
+    index$index==(0:(nrow(index)-1)), 
+    diff(index$count) <= 0
+    )
+  index <- index[1:max.words, ]
+  
+  # load co-occurrence as a sparse matrix (doc #, word #, count)
+  ccm <- read.csv(cooccur.path, header=F)
+  stopifnot(ncol(ccm)==3, apply(ccm, 2, class)=="integer")
+  smx <- sparseMatrix(i=ccm[,1], j=ccm[,2], x=1, index1=FALSE)
+  
+  # generate cosine distance matrix
+  d1 <- wordspace::dist.matrix(t(sparse)[1:max.words,], as.dist=TRUE)
+  u1 <- uwot::umap(d1, n_components=n.comp, ...)  # run UMAP
+  row.names(u1) <- index$word
+  u1
 }
 
-# try UMAP instead
-require(wordspace)
-#d1 <- wordspace::dist.matrix(t(sparse))
-d1 <- wordspace::dist.matrix(t(sparse)[1:5000,], as.dist=TRUE)
 
-require(uwot)
-u1 <- uwot::umap(d1, n_components = 3)
 
+# sort by frequency in descending order
+index <- index[order(index$count, decreasing = TRUE), ]
 
 par(mar=rep(0, 4))
 plot(u1, type='n', bty='n', xaxt='n', yaxt='n', xlab=NA, ylab=NA)
