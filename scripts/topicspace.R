@@ -44,7 +44,7 @@ topicspace <- function(index.path, cooccur.path,
 
 
 # sort by frequency in descending order
-index <- index[order(index$count, decreasing = TRUE), ]
+#index <- index[order(index$count, decreasing = TRUE), ]
 
 par(mar=rep(0, 4))
 plot(u1, type='n', bty='n', xaxt='n', yaxt='n', xlab=NA, ylab=NA)

@@ -34,30 +34,47 @@ lc <- cluster_leiden(g, resolution_parameter=0.8)
 sizes(lc)
 plot(lc, g, vertex.shape="none", edge.width=2)
 
-make_ego_graph(g, order=3)
 
 # k-nearest neighbour graph
 cutoff <- max(apply(wdist, 1, function(x) min(x[x>0])))*1.01
-n <- nrow(wdist)
-nm <- row.names(wdist)
-mx <- matrix(0, nrow=n, ncol=n, dimnames=list(nm, nm))
-max.deg <- 3
-for (i in 1:nrow(wdist)) {
-  row <- as.numeric(wdist[i,])
-  temp <- order(row)
-  idx <- temp[-(temp==i)][1:max.deg]
-  j <- idx[row[idx] < cutoff]
-  mx[i,j] <- 1
+
+
+#' Make k-nearest neighbour graph from a distance matrix.
+#' @param dmx:  matrix, distance matrix
+#' @param k:  integer, number of nearest neighbors
+#' @param cutoff:  numeric, if set, then nearest neighbors are excluded
+#'                 if their distance exceeds this value.
+#' @param names:  character, override input `dmx` matrix row.names
+#' @param undirected:  bool, if TRUE, then build an undirected graph
+#'                     from an asymmetric adjacency matrix
+knn <- function(dmx, k=3, cutoff=NA, names=NA, undirected=TRUE) {
+  n <- nrow(dmx)
+  if (is.na(names)) {
+    names <- row.names(dmx)
+  }
+  
+  adj <- matrix(0, nrow=n, ncol=n, dimnames=list(names, names))
+  for (i in 1:n) {
+    row <- as.numeric(dmx[i,])
+    ranks <- order(row)
+    # exclude self and find nearest neighbors
+    nn <- ranks[-(ranks==i)][1:k]
+    if (cutoff) {
+      nn <- nn[row[nn] < cutoff]  # exclude 
+    }
+    adj[i,nn] <- 1
+  }
+  mode <- ifelse(undirected, "undirected", "directed")
+  graph_from_adjacency_matrix(adj, diag=F, mode=mode)
 }
 
-g <- graph_from_adjacency_matrix(mx, diag=F, mode="undirected")
 
-plot(g, vertex.shape="none", label=row.names(wdist),
-     edge.width=2, edge.arrow.mode='-',
-     layout=layout_with_kk(g))
-
+#' Write graph to GraphViz DOT file
+#' @param g:  'igraph' class object, graph to export
+#' @param fn:  character, filename (path) to write DOT file
+#' 
 write.dot <- function(g, fn) {
-  conn <- file(fn, "w")
+  conn <- file(fn, "w")  # open connection to file
   cat("graph {\n", file=conn)
   cat("\tnode [shape=box];\n", file=conn)
   
