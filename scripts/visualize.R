@@ -59,7 +59,9 @@ plot(g, vertex.shape="none", label=row.names(wdist),
 write.dot <- function(g, fn) {
   conn <- file(fn, "w")
   cat("graph {\n", file=conn)
-  cat("\tnode [shape=box];\n", file=conn)
+  cat("\toutputorder=edgesfirst;\n", file=conn)
+  cat("\tnode [shape=rect, style=filled, fillcolor=white, margin=0.05, height=0];\n", file=conn)
+  cat("\tedge [len=1.1];\n", file=conn)
   
   # write edge list
   el <- as_edgelist(g)

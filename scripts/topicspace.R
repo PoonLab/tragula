@@ -16,7 +16,7 @@ require(uwot)
 #' @param max.words:  integer, maximum number of words to analyze
 #' @param n.comp:  integer, number of components for UMAP
 #' @param ...:  other arguments to pass to uwot::umap()
-#' @return matrix, UMAP coordinates for words
+#' @return S3 object of class 'topicspace"
 topicspace <- function(index.path, cooccur.path, 
                        max.words=5000, n.comp=3, ...) {
   # load global index of all words
@@ -38,9 +38,12 @@ topicspace <- function(index.path, cooccur.path,
   d1 <- wordspace::dist.matrix(t(sparse)[1:max.words,], as.dist=TRUE)
   u1 <- uwot::umap(d1, n_components=n.comp, ...)  # run UMAP
   row.names(u1) <- index$word
-  u1
+  obj <- list(um=u1, index=index)
+  class(obj) <- c("topicspace", "list")
+  obj
 }
 
+plot.topicspace <- function(obj)
 
 
 # sort by frequency in descending order
