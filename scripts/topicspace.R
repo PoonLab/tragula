@@ -1,5 +1,3 @@
-# python scripts/analyze.py --counts results/by_author.json --matrix results/cooccur.csv --index results/index.csv data
-
 require(Matrix)
 require(irlba)
 require(transport)
@@ -7,17 +5,18 @@ require(jsonlite)
 require(wordspace)
 require(uwot)
 
-#setwd("~/git/tragula")
 
 #' topicspace
 #' Map the word-context co-occurrence matrix to a lower-dimensional space
+#' using uniform manifold approximation and projection (UMAP)
+#' 
 #' @param index.path:  character, path to CSV file with word index
 #' @param cooccur.path:  character, path to CSV file with co-occurrence counts
 #' @param max.words:  integer, maximum number of words to analyze
 #' @param n.comp:  integer, number of components for UMAP
 #' @param ...:  other arguments to pass to uwot::umap()
 #' @return S3 object of class 'topicspace"
-topicspace <- function(index.path, cooccur.path, 
+topicspace <- function(index.path, cooccur.path, author.path,
                        max.words=5000, n.comp=3, ...) {
   # load global index of all words
   index <- read.csv(index.path)
@@ -38,88 +37,110 @@ topicspace <- function(index.path, cooccur.path,
   d1 <- wordspace::dist.matrix(t(sparse)[1:max.words,], as.dist=TRUE)
   u1 <- uwot::umap(d1, n_components=n.comp, ...)  # run UMAP
   row.names(u1) <- index$word
-  obj <- list(um=u1, index=index)
+  
+  # load word counts by author
+  by.author <- read_json(author.path, simplifyVector = TRUE)
+  by.author <- sapply(by.author, unlist)
+  
+  obj <- list(um=u1, index=index, by.author=by.author)
   class(obj) <- c("topicspace", "list")
   obj
 }
 
-plot.topicspace <- function(obj)
-
-
-# sort by frequency in descending order
-#index <- index[order(index$count, decreasing = TRUE), ]
-
-par(mar=rep(0, 4))
-plot(u1, type='n', bty='n', xaxt='n', yaxt='n', xlab=NA, ylab=NA)
-text(u1[1:5000,], labels=index$word[1:5000], cex=0.5)
-
-
-# load author-specific word counts
-by.author <- read_json("results/by_author.json", simplifyVector = TRUE)
-by.author <- sapply(by.author, unlist)  # more convenient named vectors
-
-if (FALSE) {
-  # top two words are negatively correlated
-  y <- sapply(by.author, function(a) 
-    ifelse(is.element("patient", names(a)), a[["patient"]]/length(a), NA))
-  x <- sapply(by.author, function(a) 
-    ifelse(is.element("cell", names(a)), a[["cell"]]/length(a), NA))
-  
-  plot(x,y, type='n', log='xy', bty='n', xlab="f(Cell)", ylab="f(Patient)")
-  text(x, y, labels=surname, cex=0.5, xpd=NA)
-  cor.test(x, y)  
-}
-
-
-fingerprint <- function(author) {
-  # a useful way of viewing each author's word frequency in UMAP space
-  idx <- match(index$word[1:5000], names(by.author[[author]]))
-  plot(u1, pch=19, cex=0.1, col='grey')
-  points(u1, cex=sqrt(by.author[[author]][idx])/2, pch=19, 
-         col=rgb(0,0,0,0.2))  
-}
-
-
-# map each author's word counts to global index and convert to a 
-# weighted point pattern (discrete probability distribution over a 
-# finite number of points in a continuous space)
-objs <- lapply(by.author, function(wordcounts) {
-  idx <- match(index$word[1:5000], names(wordcounts))
-  mass <- wordcounts[idx]
-  mass[is.na(mass)] <- 0
-  mass <- mass / sum(mass)
-  wpp(u1, mass=mass)
-})
-
-
-# finally, calculate the pairwise Wasserstein distance matrix
-n <- length(objs)
-mc.cores <- 10  # careful of RAM usage! about 2GB per core
-if (require(parallel, quietly=TRUE)) {
-  res <- mclapply(0:(n*n-1), function(k) {
-    i <- k %/% n + 1
-    j <- k %% n + 1
-    if (i < j) { 
-      wasserstein(objs[[i]], objs[[j]], prob=TRUE) 
-    } else {
-      0
-    }
-  }, mc.cores = mc.cores)
-  wdist <- matrix(unlist(res), nrow=n, ncol=n, byrow=T)
-  # reflect upper triagonal
-  ix <- lower.tri(wdist, diag=FALSE)
-  wdist[ix] <- t(wdist)[ix]  
-} else {
-  # single-threaded version
-  wdist <- matrix(0, nrow=n, ncol=n)
-  for (i in 1:(n-1)) {
-    for (j in (i+1):n) {
-      wdist[i,j] <- wdist[j,i] <- wasserstein(objs[[i]], objs[[j]], prob=TRUE)
-    }
+#' Generic plot function for topicspace S3 class
+#' 
+#' Plot the first two components of the distribution of words in the UMAP 
+#' representation.  Optionally visualize the word frequency of a specific 
+#' author instead of labeling words.
+#' 
+#' @param obj:  S3 object of class 'topicspace'
+#' @param author:  character, if specified, then overlay the word frequency 
+#'                 distribution for a specific author
+#' @param limit:  integer, number of words to display (in decreasing order
+#'                of global word frequency); defaults to 100
+#' @param cex:  numeric, character expansion factor for text
+#' @param ...:  other options passed to the initial call to plot()
+plot.topicspace <- function(obj, author=NA, limit=100, cex=0.5, ...) {
+  plot(obj$um, type='n', bty='n', xaxt='n', yaxt='n', xlab=NA, ylab=NA,
+       mar=rep(0,4), ...)
+  if (is.na(author)) {
+    text(obj$um[1:limit,], labels=obj$index$word[1:limit], cex=cex)  
+  } else {
+    stopifnot(is.element(author, names(by.author)))
+    # a useful way of viewing each author's word frequency in UMAP space
+    counts <- obj$by.author[[author]]
+    idx <- match(obj$index$word, names(counts))
+    points(obj$um, pch=19, cex=0.1, col='grey')
+    points(obj$um, cex=sqrt(counts[idx])/2, pch=19, col=rgb(0,0,0,0.2))
   }
 }
 
-# write matrix out to file
-rownames(wdist) <- names(objs)
-colnames(wdist) <- names(objs)
-write.csv(wdist, "results/wdist.csv")
+summary.topicspace <- function(obj) {
+  cat("topicspace object\n")
+  cat("  ", length(obj$by.author), "authors,", nrow(obj$index), "words,", 
+      ncol(obj$um), "UMAP components\n")
+  cat("  ", "Top words:", paste(head(obj$index$word), collapse=", "), 
+      "\n")
+  totals <- sapply(obj$by.author, length)
+  cat("  ", "Words per author:", 
+      paste(round(mean(totals), 2), " (range ", min(totals), "-", max(totals), ")", 
+            sep=""))
+}
+
+
+
+#' get.dist
+#' 
+#' Map each author's word counts to a topicspace and convert to 
+#' weighted point patterns (discrete probability distribution over a 
+#' finite number of points in a continuous space).  Calculate a 
+#' pairwise matrix using Wasserstein (earth mover's) distances.
+#' 
+#' @param obj:  S3 object of class 'topicspace'
+#' @param mc.cores:  integer, number of cores if using parallel
+#' @return  dist object
+get.dist <- function(obj, mc.cores=1) {
+  # calculate weighted point patterns
+  wpps <- lapply(by.author, function(counts) {
+    idx <- match(obj$index$word, names(counts))
+    mass <- counts[idx]
+    mass[is.na(mass)] <- 0  # handle missing entries
+    mass <- mass / sum(mass)  # normalize
+    wpp(obj$um, mass=mass)
+  })
+  
+  # calculate the pairwise Wasserstein distance matrix
+  n <- length(objs)
+  if (require(parallel, quietly=TRUE)) {
+    res <- mclapply(0:(n*n-1), function(k) {
+      i <- k %/% n + 1
+      j <- k %% n + 1
+      if (i < j) { 
+        wasserstein(wpps[[i]], wpps[[j]], prob=TRUE) 
+      } else {
+        0
+      }
+    }, mc.cores = mc.cores)
+    
+    wdist <- matrix(unlist(res), nrow=n, ncol=n, byrow=T)
+    
+    # reflect upper triagonal
+    ix <- lower.tri(wdist, diag=FALSE)
+    wdist[ix] <- t(wdist)[ix]  
+  } else {
+    # single-threaded version
+    wdist <- matrix(0, nrow=n, ncol=n)
+    for (i in 1:(n-1)) {
+      for (j in (i+1):n) {
+        wdist[j, i] <- wasserstein(wpps[[i]], wpps[[j]], prob=TRUE)
+        wdist[i, j] <- wdist[j, i]  # symmetric matrix
+      }
+    }
+  }
+  
+  rownames(wdist) <- names(wpps)
+  colnames(wdist) <- names(wpps)  
+  wdist
+}
+
+#write.csv(wdist, "results/wdist.csv")
