@@ -20,7 +20,8 @@ def extract(article):
         if "CollectiveName" in aut:
             authors.append(aut["CollectiveName"])
         else:
-            authors.append(f"{aut['ForeName']} {aut['LastName']}")
+            names = [aut[key] for key in ["ForeName", "LastName"] if key in aut]
+            authors.append(' '.join(names))
     title = article["ArticleTitle"]
     if title.startswith("Author Correction") or title.startswith("Correction:"):
         return None

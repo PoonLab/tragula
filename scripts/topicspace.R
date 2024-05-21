@@ -145,4 +145,3 @@ get.dist <- function(obj, mc.cores=1) {
   wdist
 }
 
-#write.csv(wdist, "results/wdist.csv")
