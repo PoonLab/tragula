@@ -1,5 +1,4 @@
 require(Matrix)
-require(irlba)
 require(transport)
 require(jsonlite)
 require(wordspace)
@@ -31,7 +30,7 @@ topicspace <- function(index.path, cooccur.path, author.path,
   # load co-occurrence as a sparse matrix (doc #, word #, count)
   ccm <- read.csv(cooccur.path, header=F)
   stopifnot(ncol(ccm)==3, apply(ccm, 2, class)=="integer")
-  smx <- sparseMatrix(i=ccm[,1], j=ccm[,2], x=1, index1=FALSE)
+  smx <- Matrix::sparseMatrix(i=ccm[,1], j=ccm[,2], x=1, index1=FALSE)
   
   # generate cosine distance matrix
   d1 <- wordspace::dist.matrix(t(sparse)[1:max.words,], as.dist=TRUE)
@@ -39,7 +38,7 @@ topicspace <- function(index.path, cooccur.path, author.path,
   row.names(u1) <- index$word
   
   # load word counts by author
-  by.author <- read_json(author.path, simplifyVector = TRUE)
+  by.author <- jsonlite::read_json(author.path, simplifyVector = TRUE)
   by.author <- sapply(by.author, unlist)
   
   obj <- list(um=u1, index=index, by.author=by.author)
@@ -87,6 +86,9 @@ summary.topicspace <- function(obj) {
             sep=""))
 }
 
+print.topicspace <- function(obj) {
+  summary(obj)
+}
 
 
 #' get.dist
@@ -116,7 +118,7 @@ get.dist <- function(obj, mc.cores=1) {
       i <- k %/% n + 1
       j <- k %% n + 1
       if (i < j) { 
-        wasserstein(wpps[[i]], wpps[[j]], prob=TRUE) 
+        transport::wasserstein(wpps[[i]], wpps[[j]], prob=TRUE) 
       } else {
         0
       }
@@ -132,7 +134,7 @@ get.dist <- function(obj, mc.cores=1) {
     wdist <- matrix(0, nrow=n, ncol=n)
     for (i in 1:(n-1)) {
       for (j in (i+1):n) {
-        wdist[j, i] <- wasserstein(wpps[[i]], wpps[[j]], prob=TRUE)
+        wdist[j, i] <- transport::wasserstein(wpps[[i]], wpps[[j]], prob=TRUE)
         wdist[i, j] <- wdist[j, i]  # symmetric matrix
       }
     }

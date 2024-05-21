@@ -19,11 +19,11 @@ specified in --index (defaults to stdout).
 # tags to exclude
 # https://www.ibm.com/docs/en/wca/3.5.0?topic=analytics-part-speech-tag-sets
 xtags = {
-    "IN",  # preposition / subordinating conjunction
-    "CD",  # cardinal number
-    "DT",  # determiner
-    "CC",  # coordinating conjunction
-    "TO",  # preposition "to"
+    "IN",  # preposition / subordinating conjunction, e.g., "because"
+    "CD",  # cardinal number, e.g., "1"
+    "DT",  # determiner, e.g., "the", "my"
+    "CC",  # coordinating conjunction, e.g., "and"
+    "TO",  # preposition, "to""
     ":", "(", ")", ",", "."  # punctuation
 }
 
@@ -32,6 +32,7 @@ numeric = re.compile("^-?[0-9]+\.?[0-9]*$")
 
 
 def load_xwords(path):
+    """ Import a set of words to exclude from file """
     xwords = set()
     with open(path) as handle:
         for line in handle:
@@ -77,22 +78,25 @@ def process(files, xwords, debug=False):
                     continue
                 filtered.append(word)
 
-            # increment word counts by author
+            # increment word counts
             for word in filtered:
+                # global counts
                 if word not in all_words:
                     all_words.update({word: 0})
                 all_words[word] += 1
 
-            if debug:
-                continue  # skip next steps
-
-            for word in filtered:
+                if debug:
+                    continue  # skip next steps
+                # count by author
                 if word not in by_author[author]:
                     by_author[author].update({word: 0})
                 by_author[author][word] += 1
 
             # record co-occurrences
-            by_document.append(dict([(w, filtered.count(w)) for w in set(filtered)]))
+            if not debug:
+                by_document.append(
+                    dict([(w, filtered.count(w)) for w in set(filtered)])
+                )
 
     return all_words, by_author, by_document
 
@@ -123,7 +127,6 @@ if __name__ == "__main__":
     # export indexed words
     intermed = [(count, word) for word, count in all_words.items()]
     intermed.sort(reverse=True)
-
     writer = csv.writer(args.index)
     writer.writerow(["word", "count", "index"])
     index = {}
