@@ -36,7 +36,7 @@ plot(lc, g, vertex.shape="none", edge.width=2)
 
 
 # k-nearest neighbour graph
-cutoff <- max(apply(wdist, 1, function(x) min(x[x>0])))*1.01
+
 
 
 #' Make k-nearest neighbour graph from a distance matrix.
@@ -49,8 +49,12 @@ cutoff <- max(apply(wdist, 1, function(x) min(x[x>0])))*1.01
 #'                     from an asymmetric adjacency matrix
 knn <- function(dmx, k=3, cutoff=NA, names=NA, undirected=TRUE) {
   n <- nrow(dmx)
+  # handle default values
   if (is.na(names)) {
     names <- row.names(dmx)
+  }
+  if (is.na(cutoff)) {
+    cutoff <- max(apply(dmx, 1, function(x) min(x[x>0])))
   }
   
   adj <- matrix(0, nrow=n, ncol=n, dimnames=list(names, names))
@@ -59,9 +63,7 @@ knn <- function(dmx, k=3, cutoff=NA, names=NA, undirected=TRUE) {
     ranks <- order(row)
     # exclude self and find nearest neighbors
     nn <- ranks[-(ranks==i)][1:k]
-    if (cutoff) {
-      nn <- nn[row[nn] < cutoff]  # exclude 
-    }
+    nn <- nn[row[nn] <= cutoff]  # exclude edges that are too long
     adj[i,nn] <- 1
   }
   mode <- ifelse(undirected, "undirected", "directed")
