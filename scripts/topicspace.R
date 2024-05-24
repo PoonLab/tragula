@@ -108,7 +108,7 @@ get.dist <- function(obj, mc.cores=1) {
     mass <- counts[idx]
     mass[is.na(mass)] <- 0  # handle missing entries
     mass <- mass / sum(mass)  # normalize
-    wpp(obj$um, mass=mass)
+    transport::wpp(obj$um, mass=mass)
   })
   
   # calculate the pairwise Wasserstein distance matrix
@@ -126,7 +126,7 @@ get.dist <- function(obj, mc.cores=1) {
     
     wdist <- matrix(unlist(res), nrow=n, ncol=n, byrow=T)
     
-    # reflect upper triagonal
+    # reflect upper triangular portion of matrix
     ix <- lower.tri(wdist, diag=FALSE)
     wdist[ix] <- t(wdist)[ix]  
   } else {
