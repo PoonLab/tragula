@@ -1,0 +1,41 @@
+lastname	forename	initials	query
+Bai	Donglin	DB	Bai, Donglin
+Beier	Frank	FB	Beier, Frank and Canada
+Bell	Christine	CEB	Bell, Christine and Canada
+Betts	Dean	DHB	Betts, Dean H
+Beye	Angela		
+Birceanu	Oana	OB	Birceanu, Oana
+Borradaile	Nica	NMB	Borradaile, Nica M
+Bussey	Tim	TJB	Bussey, Timothy J
+Campbell	Nicole	NC	Campbell, Nicole and Canada
+Chidiac	Peter	PC	Chidiac, Peter
+Corneil	Brian	BDC	Corneil, Brian D
+Cregan	Sean	SPC	Cregan, Sean P
+Crowley	Fabiana	FAC	(Crowley FA[Author Name]) OR (Caetano FA[Author Name])
+Dagnino	Lina	LD	Dagnino, Lina
+Di Guglielmo	John	GMDG	Di Guglielmo, Gianni M
+Everling	Stefan	SE	Everling, Stefan
+Feng	Qingping	QF	Feng, Qingping and Canada
+Gribble	Paul	PLG	Gribble, Paul L
+Grol	Matthew W.	MWG	Grol, Matthew W and Canada
+Gros	Robert	RG	Gros, Robert and Canada
+Hess	David	DAH	Hess, David A
+Inoue	Wataru	WI	Inoue, Wataru
+Koschinsky	Marlys	MLK	Koschinsky, Marlys L
+Lu	Van	VBL	Lu, Van B
+Martinez-Trujillo	Julio	JMT	Martinez-Trujillo, Julio
+Muanda	Flory	FTM	Muanda, Flory T
+Owen	Adrian M	AMO	Owen, Adrian M
+Pin	Christopher L	CLP	Pin, Christopher L
+Pruszynski	Andrew	JAP	Pruszynski, J Andrew
+Ramachandran	Rithwik	RR	Ramachandran, Rithwik
+Rylett	Jane	RJR	Rylett, R Jane
+Saksida	Lisa	LMS	Saksida, Lisa M
+Schmitz	Taylor	TWS	Schmitz, Taylor W
+Seguin	Cheryle A	CAS	Seguin, Cheryle A
+Stathopulos	Peter	PBS	Stathopulos, Peter B
+Tirona	Rommel G	RGT	Tirona, Rommel G
+Urquhart	Brad	BLU	"((((urquhart b[Author]) AND ontario) OR urquhart bl[Author]) AND (""2003""[Date - Publication] : ""3000""[Date - Publication])) NOT urban[Author]"
+Wang	Rennian	RW	Wang, Rennian and Canada
+Welsh	Don	DGW	Welsh, Donald G
+Woods	Anita	AW	Woods, Anita
