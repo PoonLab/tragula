@@ -121,7 +121,7 @@ get.dist <- function(obj, mc.cores=1) {
   })
   
   # calculate the pairwise Wasserstein distance matrix
-  n <- length(objs)
+  n <- length(wpps)
   if (require(parallel, quietly=TRUE)) {
     res <- mclapply(0:(n*n-1), function(k) {
       i <- k %/% n + 1
