@@ -148,4 +148,5 @@ if __name__ == "__main__":
         for word, count in counts.items():
             j = index.get(word, None)  # global indexing
             if j is not None:
+                # document index, word index, count
                 writer.writerow([i, j, count])

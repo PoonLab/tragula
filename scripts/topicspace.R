@@ -16,7 +16,7 @@ require(uwot)
 #' @param ...:  other arguments to pass to uwot::umap()
 #' @return S3 object of class 'topicspace"
 topicspace <- function(index.path, cooccur.path, author.path,
-                       max.words=5000, n.comp=3, ...) {
+                       max.words=5000, n.comp=2, ...) {
   # load global index of all words
   index <- read.csv(index.path)
   # check file integrity
@@ -33,7 +33,7 @@ topicspace <- function(index.path, cooccur.path, author.path,
   smx <- Matrix::sparseMatrix(i=ccm[,1], j=ccm[,2], x=1, index1=FALSE)
   
   # generate cosine distance matrix
-  d1 <- wordspace::dist.matrix(t(sparse)[1:max.words,], as.dist=TRUE)
+  d1 <- wordspace::dist.matrix(t(smx)[1:max.words,], as.dist=TRUE)
   u1 <- uwot::umap(d1, n_components=n.comp, ...)  # run UMAP
   row.names(u1) <- index$word
   
@@ -57,20 +57,29 @@ topicspace <- function(index.path, cooccur.path, author.path,
 #'                 distribution for a specific author
 #' @param limit:  integer, number of words to display (in decreasing order
 #'                of global word frequency); defaults to 100
-#' @param cex:  numeric, character expansion factor for text
+#' @param pt.cex:  numeric, character expansion factor for points, not 
+#'                 including author-specific point scaling
+#' @param text.cex:  numeric, character expansion factor for text
+#' @param scale:  numeric, scaling factor for author-specific points
 #' @param ...:  other options passed to the initial call to plot()
-plot.topicspace <- function(obj, author=NA, limit=100, cex=0.5, ...) {
-  plot(obj$um, type='n', bty='n', xaxt='n', yaxt='n', xlab=NA, ylab=NA,
+plot.topicspace <- function(obj, i=1, j=2, author=NA, limit=100, text.cex=0.5, 
+                            pt.cex=0.1, scale=3, ...) {
+  x <- obj$um[,i]
+  y <- obj$um[,j]
+  plot(x, y, type='n', bty='n', xaxt='n', yaxt='n', xlab=NA, ylab=NA,
        mar=rep(0,4), ...)
+  points(x, y, pch=19, cex=pt.cex, col='grey')
   if (is.na(author)) {
-    text(obj$um[1:limit,], labels=obj$index$word[1:limit], cex=cex)  
+    text(x[1:limit], y[1:limit], labels=obj$index$word[1:limit], cex=text.cex)
   } else {
-    stopifnot(is.element(author, names(by.author)))
+    stopifnot(is.element(author, names(obj$by.author)))
     # a useful way of viewing each author's word frequency in UMAP space
     counts <- obj$by.author[[author]]
     idx <- match(obj$index$word, names(counts))
-    points(obj$um, pch=19, cex=0.1, col='grey')
-    points(obj$um, cex=sqrt(counts[idx])/2, pch=19, col=rgb(0,0,0,0.2))
+    # use relative frequencies so we do not over-emphasize authors who 
+    # write more
+    freq <- 100 * counts[idx] / sum(counts)
+    points(x, y, cex=scale*sqrt(freq), pch=19, col=rgb(0,0,0,0.2))
   }
 }
 
@@ -103,7 +112,7 @@ print.topicspace <- function(obj) {
 #' @return  dist object
 get.dist <- function(obj, mc.cores=1) {
   # calculate weighted point patterns
-  wpps <- lapply(by.author, function(counts) {
+  wpps <- lapply(obj$by.author, function(counts) {
     idx <- match(obj$index$word, names(counts))
     mass <- counts[idx]
     mass[is.na(mass)] <- 0  # handle missing entries
