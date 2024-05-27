@@ -91,3 +91,14 @@ plot(ts, author="Poon_Art", main="Poon")
 plot(ts, author="Garcia_Bertha", main="Garcia")
 ```
 
+
+## Earth mover's distance
+
+The final step of the analysis is to calculate a matrix of distances between members of the department, based on the differences in their respective word frequency distributions.
+When we map a person's word frequency distribution onto the "topic space" in which we have embedded all the words, we sc
+
+Having embedded words into a "topic space", we are able to compare these distributions even when people do not use exactly the same words.
+This is possible because the Wasserstein distance, also known as the Kantorovich-Rubenstein or earth mover's distance, determines the minimum amount of probability mass that needs to be transferred from one point to another 
+
+
+

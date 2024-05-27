@@ -10,8 +10,13 @@ Write the results to a JSON file.
 """
 
 
-def extract(article):
-    """ Extract abstract text, title and keywords from article record """
+def extract(article, max_words=1000):
+    """
+    Extract abstract text, title and keywords from article record
+    :param article:
+    :param max_words:  int, if abstract word count exceeds this number, discard
+                       the record
+    """
     # parse title and abstract text
     medline = article["MedlineCitation"]
     article = medline["Article"]
@@ -29,7 +34,10 @@ def extract(article):
     abstext = ""
     if abstract:
         abstext = ' '.join([str(entry) for entry in abstract["AbstractText"]])
-    
+        if len(abstext.split()) > max_words:
+            sys.stderr.write(f"Error: excessive word count in \"{title}\", skipping\n")
+            return None
+
     # parse keywords
     keylist = medline["KeywordList"]
     keywords = []
