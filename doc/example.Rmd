@@ -101,10 +101,35 @@ For example, "carcinoma" is located close to "tumor".
 
 To calculate the distance between two authors, we use the Wasserstein distance, also known as the Kantorovich-Rubenstein or earth mover's distance.
 This distance roughly corresponds to the minimum amount of work required to reshape one distribution into another, by transporting probability mass between points.
-This is one of the most time-consuming steps of the analysis, so we will run it on four cores on our CPU.
+This is one of the most time-consuming steps of the analysis, so I have set it up to run on 24 cores so that it takes about one minute on my machine running an AMD Ryzen 9 7950X.
 Hopefully your computer's CPU has at least this many cores; if not, make sure you to decrease the `mc.cores` argument in the following expression.
-This particular dataset also requires about 4GB of RAM per core, so adjust for your system accordingly.
+This particular dataset also requires about 1 GB of RAM per core, so adjust for your system accordingly.
 ```{r cache=TRUE}
-wdist <- get.dist(ts, mc.cores=4)
+wdist <- get.dist(ts, mc.cores=24)
 ```
 
+
+## Visualization
+
+The last thing that we need to do is visually interpret the results of this analysis.  This is complicated by the fact that we've generated another distance matrix.  It is much smaller (79-by-79) than the co-occurrence matrix that we started with (5000-by-79), but still difficult to interpret.  
+
+Of course there are many methods to visualize a distance matrix.  I've provided some functions in a script called `visualize.R`.  One of these is simply a wrapper around the multi-dimensional scaling function in R (`cmdscale`):
+```{r message=FALSE, warning=FALSE}
+source("scripts/visualize.R")
+plot.wdist(wdist)
+```
+
+We can also use R's built-in hierarchical clustering methods:
+```{r fig.width=8, out.width="100%"}
+hc <- hclust(as.dist(wdist))
+plot(hc, cex=0.5, main=NA, xlab=NA, sub=NA)
+```
+
+My preferred method, however, is to generate a network (graph) in which each node represents an author, and connections between authors indicate that their similarity exceeds some threshold.
+Because some authors end up forming a large number of connections (high degree size), I wrote a function that only connects each author to their $k$ nearest neighbours, where $k$ is set to 3 by default.
+```{r fig.width=8, fig.height=8, out.width="100%", message=FALSE, warning=FALSE}
+g <- knn(wdist)
+plot(g, vertex.shape="none", label=row.names(wdist), 
+     vertex.label.cex=0.5, vertex.size=5, 
+     edge.width=2, edge.arrow.mode='-')
+```
