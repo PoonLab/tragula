@@ -1,14 +1,17 @@
 require(igraph)
-
+require(jsonlite)
 
 #' Use multi-dimensional scaling to visualize author distance matrix
 #' @param wdist:  matrix or data.frame, pairwise distance matrix for authors
 #' @param 
-plot.wdist <- function(wdist, k=2) {
+plot.wdist <- function(wdist, k=2, labels=NA) {
+  if (all(is.na(labels))) {
+    labels <- row.names(wdist)
+  }
   mds <- cmdscale(wdist, k=k)
   par(mar=rep(1,4))
   plot(mds, type='n', bty='n', xaxt='n', yaxt='n', xlab=NA, ylab=NA)
-  text(mds, labels=row.names(wdist), cex=0.7, xpd=NA)  
+  text(mds, labels=labels, cex=0.7, xpd=NA)  
 }
 
 
@@ -20,7 +23,7 @@ plot.wdist <- function(wdist, k=2) {
 #' @param names:  character, override input `dmx` matrix row.names
 #' @param undirected:  bool, if TRUE, then build an undirected graph
 #'                     from an asymmetric adjacency matrix
-knn <- function(dmx, k=3, cutoff=NA, names=NA, undirected=TRUE) {
+make.knn <- function(dmx, k=3, cutoff=NA, names=NA, undirected=TRUE) {
   n <- nrow(dmx)
   # handle default values
   if (is.na(names)) {
@@ -40,7 +43,17 @@ knn <- function(dmx, k=3, cutoff=NA, names=NA, undirected=TRUE) {
     adj[i,nn] <- 1
   }
   mode <- ifelse(undirected, "undirected", "directed")
-  igraph::graph_from_adjacency_matrix(adj, diag=F, mode=mode)
+  g <- igraph::graph_from_adjacency_matrix(adj, diag=F, mode=mode)
+  if (mode=="directed") {
+    idx <- which(as.logical(adj))
+    E(g)$weight <- dmx[idx]    
+  } else {
+    eids <- sapply(as_ids(E(g)), function(x) strsplit(x, "\\|")[[1]])
+    parent <- match(eids[1,], as_ids(V(g)))
+    child <- match(eids[2,], as_ids(V(g)))
+    E(g)$weight <- sapply(1:ncol(eids), function(i) dmx[parent[i], child[i]])
+  }
+  g
 }
 
 
@@ -64,4 +77,19 @@ write.dot <- function(g, fn) {
 }
 
 
+#' Generate a JSON object to pass to JavaScript layer via r2d3
+#' @param g:  'igraph' class object
+#' @param labels:  character, optionally use custom node labels
+export.json <- function(g, labels=NA) {
+  nodes <- data.frame(id=as_ids(V(g)))
+  if (all(is.na(labels))) {
+    nodes$label <- nodes$id
+  } else {
+    nodes$label <- labels
+  }
+  edges <- as.data.frame(igraph::as_edgelist(g))
+  names(edges) <- c('source', 'target')
+  edges$dist <- E(g)$weight
+  jsonlite::toJSON(list(nodes=nodes, edges=edges))
+}
 

@@ -1,5 +1,5 @@
 ---
-title: "Departmental analysis"
+title: "tragula"
 output: github_document
 ---
 
@@ -11,7 +11,7 @@ knitr::opts_chunk$set(
 knitr::opts_knit$set(root.dir="~/git/tragula")
 ```
 
-This document provides a workflow example for retrieving, processing and visualizing the similarity network among faculty members of the Department of Pathology and Laboratory Medicine (PaLM) at my home institution.
+*tragula* is a set of Python and R scripts for analyzing and visualizing the similarities among people 
 
 ## Download text
 
@@ -116,20 +116,40 @@ The last thing that we need to do is visually interpret the results of this anal
 Of course there are many methods to visualize a distance matrix.  I've provided some functions in a script called `visualize.R`.  One of these is simply a wrapper around the multi-dimensional scaling function in R (`cmdscale`):
 ```{r message=FALSE, warning=FALSE}
 source("scripts/visualize.R")
-plot.wdist(wdist)
+
+# map author names to initials
+fac <- read.csv("data/palm.tsv", sep='\t')
+fac$filename <- paste(fac$lastname, fac$forename, sep="_")
+fac$filename <- gsub(" ", "_", fac$filename)
+idx <- match(row.names(wdist), fac$filename)
+labels <- fac$initials[idx]
+
+plot.wdist(wdist, labels=labels)
 ```
 
 We can also use R's built-in hierarchical clustering methods:
 ```{r fig.width=8, out.width="100%"}
 hc <- hclust(as.dist(wdist))
-plot(hc, cex=0.5, main=NA, xlab=NA, sub=NA)
+plot(hc, cex=0.5, main=NA, xlab=NA, sub=NA, labels=labels)
 ```
 
 My preferred method, however, is to generate a network (graph) in which each node represents an author, and connections between authors indicate that their similarity exceeds some threshold.
 Because some authors end up forming a large number of connections (high degree size), I wrote a function that only connects each author to their $k$ nearest neighbours, where $k$ is set to 3 by default.
-```{r fig.width=8, fig.height=8, out.width="100%", message=FALSE, warning=FALSE}
-g <- knn(wdist)
-plot(g, vertex.shape="none", label=row.names(wdist), 
-     vertex.label.cex=0.5, vertex.size=5, 
+```{r fig.width=8, fig.height=8, out.width="60%", message=FALSE, warning=FALSE}
+g <- make.knn(wdist, k=4)
+plot(g, vertex.shape="none", vertex.label=labels, 
+     vertex.label.cex=1, vertex.size=10, 
      edge.width=2, edge.arrow.mode='-')
 ```
+
+We can use community detection to identify clusters in this graph, which can be visualized by drawing coloured polygons:
+```{r fig.width=8, fig.height=8, out.width="60%"}
+cl <- cluster_louvain(g)
+plot(g, mark.groups=cl, vertex.shape="none", vertex.label=labels, 
+     vertex.label.cex=1, vertex.size=10, 
+     edge.width=2, edge.arrow.mode='-')
+```
+
+Note that the clusters produced by the Louvain method are non-overlapping; any overlap between polygons is due to constraints in drawing polygons.
+
+
