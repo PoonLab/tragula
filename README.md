@@ -12,7 +12,10 @@ published documents (scientific abstracts). In brief, the documents are
 processed through standard text-mining techniques to extract informative
 words. These words are then embedded into a “topic space”, such that
 words that tend to occur in the same texts occupy similar locations in
-this space.
+this space. The frequency distribution of words for each author defines
+a probability distribution over this embedding. Lastly, we measure the
+distance between authors based on the amount of “work” required to
+transform one author’s probability distribution into another’s.
 
 ## Installation
 
