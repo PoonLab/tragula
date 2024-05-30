@@ -66,13 +66,17 @@ plot.topicspace <- function(obj, i=1, j=2, author=NA, limit=100, text.cex=0.5,
                             pt.cex=0.1, scale=3, ...) {
   x <- obj$um[,i]
   y <- obj$um[,j]
-  plot(x, y, type='n', bty='n', xaxt='n', yaxt='n', xlab=NA, ylab=NA,
-       mar=rep(0,4), ...)
+  par(mar=rep(1,4))
+  plot(x, y, type='n', bty='n', xaxt='n', yaxt='n', xlab=NA, ylab=NA, ...)
   points(x, y, pch=19, cex=pt.cex, col='grey')
   if (is.na(author)) {
     text(x[1:limit], y[1:limit], labels=obj$index$word[1:limit], cex=text.cex)
   } else {
-    stopifnot(is.element(author, names(obj$by.author)))
+    if (is.numeric(author)) {
+      author <- names(obj$by.author)[author]
+    } else {
+      stopifnot(is.element(author, names(obj$by.author)))
+    }
     # a useful way of viewing each author's word frequency in UMAP space
     counts <- obj$by.author[[author]]
     idx <- match(obj$index$word, names(counts))
@@ -151,6 +155,8 @@ get.dist <- function(obj, mc.cores=1) {
   
   rownames(wdist) <- names(wpps)
   colnames(wdist) <- names(wpps)  
+  wdist <- as.dist(wdist)
+  class(wdist) <- c('wdist', 'dist')
   wdist
 }
 

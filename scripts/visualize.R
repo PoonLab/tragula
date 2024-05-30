@@ -2,28 +2,39 @@ require(igraph)
 require(jsonlite)
 
 #' Use multi-dimensional scaling to visualize author distance matrix
-#' @param wdist:  matrix or data.frame, pairwise distance matrix for authors
-#' @param 
-plot.wdist <- function(wdist, k=2, labels=NA) {
+#' @param wdist:  S3 object of class `wdist`, pairwise distance matrix for authors
+#' @param i:  integer, select component for x-axis (default 1)
+#' @param j:  integer, select component for y-axis (default 2)
+#' @param type:  character, 'u' for UMAP, 'm' for multidimensional scaling
+#' @param k:  integer, number of components for dimensionality reduction
+#' @param labels:  character, optionally specify a custom set of labels
+plot.wdist <- function(wdist, i=1, j=2, type='u', k=2, labels=NA, ...) {
   if (all(is.na(labels))) {
-    labels <- row.names(wdist)
+    labels <- attr(wdist, "Labels")
   }
-  mds <- cmdscale(wdist, k=k)
+  if (type=='m') {
+    proj <- cmdscale(wdist, k=k)
+  } else if (type=='u') {
+    proj <- umap(wdist, n_components=k)
+  }
+  x <- proj[,i]
+  y <- proj[,j]
   par(mar=rep(1,4))
-  plot(mds, type='n', bty='n', xaxt='n', yaxt='n', xlab=NA, ylab=NA)
-  text(mds, labels=labels, cex=0.7, xpd=NA)  
+  plot(x, y, type='n', bty='n', xaxt='n', yaxt='n', xlab=NA, ylab=NA, ...)
+  text(x, y, labels=labels, cex=0.7, xpd=NA)
 }
 
 
 #' Make k-nearest neighbour graph from a distance matrix.
-#' @param dmx:  matrix, distance matrix
+#' @param wdist:  S3 object of class 'wdist', Wasserstein distance matrix
 #' @param k:  integer, number of nearest neighbors
 #' @param cutoff:  numeric, if set, then nearest neighbors are excluded
 #'                 if their distance exceeds this value.
 #' @param names:  character, override input `dmx` matrix row.names
 #' @param undirected:  bool, if TRUE, then build an undirected graph
 #'                     from an asymmetric adjacency matrix
-make.knn <- function(dmx, k=3, cutoff=NA, names=NA, undirected=TRUE) {
+make.knn <- function(wdist, k=3, cutoff=NA, names=NA, undirected=TRUE) {
+  dmx <- as.matrix(wdist)
   n <- nrow(dmx)
   # handle default values
   if (is.na(names)) {
