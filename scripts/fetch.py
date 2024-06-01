@@ -67,12 +67,14 @@ if __name__ == "__main__":
                      default=sys.stdout, help="Output file, defaults to stdout.")
     parser.add_argument("--retmax", type=int, default=20, 
                      help="Maximum number of records to retrieve (default 20).")
+    parser.add_argument("--max_words", type=int, default=1000,
+                        help="Limit abstract word count, to avoid problematic recods (default 1000).")
     args = parser.parse_args()
     
     Entrez.email = args.email
     articles = fetch(args.query, retmax=args.retmax)
 
-    records = [extract(art) for art in articles]
+    records = [extract(art, max_words=args.max_words) for art in articles]
     records = [r for r in records if r is not None]
     sys.stderr.write(f"Retrieved {len(records)} records (limit {args.retmax})\n")
     

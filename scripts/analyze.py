@@ -40,13 +40,14 @@ def load_xwords(path):
     return xwords
 
 
-def process(files, xwords, debug=False):
+def process(files, xwords, debug=False, min_records=3):
     """
     Enumerate word co-occurrence across all texts, and track
     author-specific word frequencies.
     :param files:  list, paths to JSON files containing
     :param xwords:  set, words to exclude
     :param debug:  bool, get global word counts only
+    :param min_count:  int, minimum number of records to proceed with analysis
     :returns:
       - by_author - dict, word counts by author
       - cooccur - dict, stores numbers of texts in which both words appear
@@ -63,6 +64,10 @@ def process(files, xwords, debug=False):
 
         with open(f) as handle:
             records = json.load(handle)
+
+        if len(records) < min_count:
+            sys.stderr.write(f"Fewer than {len(records}} records, skipping.\n")
+            continue
 
         for r in records:
             text = f"{r['title']} {r['abstract']} {' '.join(r['keywords'])}"
@@ -103,16 +108,28 @@ def process(files, xwords, debug=False):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description)
-    parser.add_argument("indir", type=str, help="Path to folder containing JSON files.")
-    parser.add_argument("--counts", type=argparse.FileType('w'), required=False,
-                        help="Path to write by-author word counts (JSON)")
-    parser.add_argument("--matrix", type=argparse.FileType('w'), required=False,
-                        help="Path to write co-occurrence sparse matrix (CSV)")
-    parser.add_argument("--index", type=argparse.FileType('w'), default=sys.stdout,
-                        help="Path to write indexed words for interpreting CSV output")
-    parser.add_argument("--xwords", type=str, default="data/exclude_words.txt",
-                        help="Path to text file containing words to exclude. "
-                             "Defaults to data/exclude_words.txt")
+    parser.add_argument(
+        "indir", type=str, help="Path to folder containing JSON files.")
+    parser.add_argument(
+        "--counts", type=argparse.FileType('w'), required=False,
+        help="Path to write by-author word counts (JSON)")
+    parser.add_argument(
+        "--matrix", type=argparse.FileType('w'), required=False,
+        help="Path to write co-occurrence sparse matrix (CSV)")
+    parser.add_argument(
+        "--index", type=argparse.FileType('w'), default=sys.stdout,
+        help="Path to write indexed words for interpreting CSV output")
+    parser.add_argument(
+        "--xwords", type=str, default="data/exclude_words.txt",
+        help="Path to text file containing words to exclude. Defaults to "
+             "data/exclude_words.txt")
+    parser.add_argument(
+        "--min_count", type=int, default=2,
+        help="Minimum overall frequency of a word to be included in "
+             "co-occurrence analysis.")
+    parser.add_argument(
+        "--min_records", type=int, default=3,
+        help="Minimum number of records to include author (default 3).")
     args = parser.parse_args()
 
     xwords = load_xwords(args.xwords)
@@ -122,7 +139,8 @@ if __name__ == "__main__":
         debug = True
 
     # where all the action happens!
-    all_words, by_author, by_document = process(files, xwords=xwords, debug=debug)
+    all_words, by_author, by_document = process(
+        files, xwords=xwords, debug=debug, min_records=args.min_records)
 
     # export indexed words
     intermed = [(count, word) for word, count in all_words.items()]
@@ -131,13 +149,13 @@ if __name__ == "__main__":
     writer.writerow(["word", "count", "index"])
     index = {}
     for idx, (count, word) in enumerate(intermed):
-        if count < 2:
+        if count < args.min_count:
             continue
         writer.writerow([word, count, idx])
         index.update({word: idx})
 
     if debug:
-        sys.exit()
+        sys.exit()  # print word index and quit
 
     # write counts by author
     json.dump(by_author, args.counts, indent=2)

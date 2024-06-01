@@ -25,6 +25,10 @@ if __name__ == "__main__":
     parser.add_argument(
         "--retmax", type=int, default=200,
         help="Limit number of articles to retrieve per author.")
+    parser.add_argument(
+        "--verbose", action="store_true", help="Print messages.")
+    parser.add_argument(
+        "--overwrite", action="store_true", help="Replace existing JSON files.")
     args = parser.parse_args()
 
     if not os.path.exists(args.dest):
@@ -38,16 +42,33 @@ if __name__ == "__main__":
 
     Entrez.email = args.email
     for row in reader:
-        articles = fetch(row["query"], retmax=args.retmax)
-        records = [extract(art) for art in articles]
-        records = [r for r in records if r is not None]
-        sys.stderr.write(f"Retrieved {len(records)} records (limit {args.retmax})\n")
+        query = row["query"]
+        if query == "":
+            if args.verbose:
+                sys.stderr.write("Skipping empty query...\n")
+            sleep(1)
+            continue
 
+        # construct filename from author names
         lastname = row['lastname'].replace(' ', '_')
         firstname = row['forename'].replace(' ', '_')
         fn = f"{lastname}_{firstname}.json"
+        outfile = os.path.join(args.dest, fn)
+        if os.path.exists(outfile) and not args.overwrite:
+            # avoid unnecessary calls to API
+            sys.stderr.write(f"File {outfile} exists, use --overwrite to replace.\n")
+            continue
 
-        outfile = open(os.path.join(args.dest, fn), 'w')
-        json.dump(records, outfile, indent=2)
+        # retrieve articles
+        articles = fetch(row["query"], retmax=args.retmax)
+        records = [extract(art) for art in articles]
+        records = [r for r in records if r is not None]
+        if args.verbose:
+            sys.stderr.write(f"Query \"{query}\" retrieved {len(records)} "
+                             f"records (limit {args.retmax})\n")
+
+        # write results to JSON file
+        with open(outfile, 'w') as handle:
+            json.dump(records, handle, indent=2)
 
         sleep(1)  # pause
