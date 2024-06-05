@@ -44,6 +44,16 @@ The Python and R scripts are provided as-is; there is no installation required, 
 
 ## Usage example
 
+### Build a list of authors
+
+As an example of using this workflow, I will work through an analysis of the members of my home department (Pathology and Laboratory Medicine) at [Western University](https://uwo.ca/).
+The starting point for this analysis is to manually curate a list of people affiliated with this unit.
+
+After extracting first and last names from the department's [faculty list](https://www.schulich.uwo.ca/pathol/people/faculty/index.html), I manually added initials (to be used as compact labels in plotting results) and then manually queried the NCBI PubMed database with each name.
+I evaluated each set of search results for signs of multiple hist, *i.e.*, different authors with similar names, based on affiliations, middle initials and areas of research. 
+When there was clear evidence of multiple authors in the search results, I added filtering criteria to the query string, such as `AND Canada`, until the results were consistent with a single author.
+I saved the listing of authors and query strings as a tab-separated (TSV) file.
+
 ### Download text
 
 We will use a Python script to retrieve publication records from the NCBI PubMed database, do some initial text processing, and write the results to JSON files (one per author) into a directory `data/palm`:

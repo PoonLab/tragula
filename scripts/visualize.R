@@ -71,12 +71,30 @@ make.knn <- function(wdist, k=3, cutoff=NA, names=NA, undirected=TRUE) {
 #' Write graph to GraphViz DOT file
 #' @param g:  'igraph' class object, graph to export
 #' @param fn:  character, filename (path) to write DOT file
-write.dot <- function(g, fn) {
+write.dot <- function(g, fn, labels=NA, groups=NA, pal=NA) {
+  if (all(is.na(pal)) & all(!is.na(groups))) {
+    # default palette
+    pal <- hcl.colors(n=length(unique(groups)), palette="Set3")
+  }
+  
   conn <- file(fn, "w")  # open connection to file
   cat("graph {\n", file=conn)
   cat("\toutputorder=edgesfirst;\n", file=conn)
-  cat("\tnode [shape=rect, style=filled, fillcolor=white, margin=0.05, height=0];\n", file=conn)
+  cat("\tnode [shape=rect, style=filled, margin=0.05, height=0];\n", file=conn)
   cat("\tedge [len=1.1];\n", file=conn)
+  
+  # write node list
+  nodes <- as_ids(V(g))
+  if (all(is.na(labels))) {
+    labels <- nodes  # by default use node names as labels
+  }
+  for (i in 1:length(nodes)) {
+    cat(paste("\t\"", nodes[i], "\" [label=\"", labels[i], "\"", sep=""), file=conn)
+    if (any(!is.na(groups))) {
+      cat(", fillcolor=\"", pal[groups[i]], "\"", file=conn)
+    }
+    cat("];\n", file=conn)  # EOL
+  }
   
   # write edge list
   el <- igraph::as_edgelist(g)
