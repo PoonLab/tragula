@@ -8,7 +8,9 @@ require(jsonlite)
 #' @param type:  character, 'u' for UMAP, 'm' for multidimensional scaling
 #' @param k:  integer, number of components for dimensionality reduction
 #' @param labels:  character, optionally specify a custom set of labels
-plot.wdist <- function(wdist, i=1, j=2, type='u', k=2, labels=NA, ...) {
+#' @param col:  colour for text
+plot.wdist <- function(wdist, i=1, j=2, type='u', k=2, labels=NA, col=1, 
+                       ...) {
   if (all(is.na(labels))) {
     labels <- attr(wdist, "Labels")
   }
@@ -21,7 +23,7 @@ plot.wdist <- function(wdist, i=1, j=2, type='u', k=2, labels=NA, ...) {
   y <- proj[,j]
   par(mar=rep(1,4))
   plot(x, y, type='n', bty='n', xaxt='n', yaxt='n', xlab=NA, ylab=NA, ...)
-  text(x, y, labels=labels, cex=0.7, xpd=NA)
+  text(x, y, labels=labels, cex=0.7, xpd=NA, col=col)
 }
 
 
@@ -109,12 +111,17 @@ write.dot <- function(g, fn, labels=NA, groups=NA, pal=NA) {
 #' Generate a JSON object to pass to JavaScript layer via r2d3
 #' @param g:  'igraph' class object
 #' @param labels:  character, optionally use custom node labels
-export.json <- function(g, labels=NA) {
+export.json <- function(g, labels=NA, groups=NA) {
   nodes <- data.frame(id=as_ids(V(g)))
   if (all(is.na(labels))) {
     nodes$label <- nodes$id
   } else {
     nodes$label <- labels
+  }
+  if (all(is.na(groups))) {
+    nodes$group <- 1
+  } else {
+    nodes$group <- as.integer(as.factor(groups))
   }
   edges <- as.data.frame(igraph::as_edgelist(g))
   names(edges) <- c('source', 'target')

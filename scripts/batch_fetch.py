@@ -51,7 +51,11 @@ if __name__ == "__main__":
 
         # construct filename from author names
         lastname = row['lastname'].replace(' ', '_')
-        firstname = row['forename'].replace(' ', '_')
+        try:
+            firstname = row['forename'].replace(' ', '_')
+        except KeyError:
+            firstname = row['firstname'].replace(' ', '_')
+
         fn = f"{lastname}_{firstname}.json"
         outfile = os.path.join(args.dest, fn)
         if os.path.exists(outfile) and not args.overwrite:

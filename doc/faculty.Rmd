@@ -1,0 +1,113 @@
+---
+title: "Faculty-level analysis with tragula"
+author: "Art Poon"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+knitr::opts_knit$set(root.dir="~/git/tragula")
+```
+
+Pre-processing
+```bash
+python scripts/batch_fetch.py --email apoon42@uwo.ca --retmax 200 --verbose data/acb.tsv data/acb/
+python scripts/batch_fetch.py --email apoon42@uwo.ca --retmax 200 --verbose data/biochem.tsv data/biochem/
+python scripts/batch_fetch.py --email apoon42@uwo.ca --retmax 200 --verbose data/epibio.tsv data/epibio/
+python scripts/batch_fetch.py --email apoon42@uwo.ca --retmax 200 --verbose data/mimm.tsv data/mimm/
+python scripts/batch_fetch.py --email apoon42@uwo.ca --retmax 200 --verbose data/mbp.tsv data/mbp/
+python scripts/batch_fetch.py --email apoon42@uwo.ca --retmax 200 --verbose data/ppharm.tsv data/ppharm/
+python scripts/analyze.py data/acb data/biochem data/epibio data/mbp data/mimm data/palm data/ppharm --counts results/b7_counts.json --matrix results/b7_cooccur.csv --index results/b7_index.csv
+```
+
+Check if there are any duplicates (authors with multiple departmental affiliations)
+```{r}
+files <- c("data/acb.tsv", "data/biochem.tsv", "data/epibio.tsv", "data/mbp.tsv", "data/mimm.tsv", "data/palm.tsv", "data/ppharm.tsv")
+fac <- do.call(rbind, lapply(files, function(f) {
+  dept <- gsub("\\.tsv", "", basename(f))
+  tsv <- read.csv(f, sep='\t')
+  tsv <- tsv[,1:4]
+  names(tsv) <- c("lastname", "forename", "initials", "query")
+  tsv$affil <- dept
+  tsv
+  }))
+```
+
+Stroke of luck, all authors with duplicate initials have a unique second letter in lastname:
+```{r}
+tab <- table(fac$initials)
+for (ini in names(tab[tab>1])) { print(fac$lastname[fac$initials==ini]) }
+```
+
+```{r}
+fac$initials <- paste(fac$initials, substr(fac$lastname, 2, 2), sep="")
+fac$filename <- gsub(" ", "_", paste(fac$lastname, fac$forename, sep="_"))
+```
+
+
+Word index is a lot larger, not surprisingly
+```{r fig.width=6, fig.height=6}
+source("scripts/topicspace.R")
+source("scripts/visualize.R")
+
+index <- read.csv("results/b7_index.csv")
+require(wordcloud, quietly = TRUE)
+set.seed(70)
+wordcloud(index$word[1:200], index$count[1:200], 
+          colors=hcl.colors(20, 'Berlin'), random.color=TRUE)
+```
+
+```{r cache=TRUE}
+ts <- topicspace(
+  index.path = "results/b7_index.csv",
+  cooccur.path = "results/b7_cooccur.csv",
+  author.path = "results/b7_counts.json",
+  max.words=5000, n.comp=3)
+
+idx <- match(names(ts$by.author), fac$filename)
+labels <- fac$initials[idx]
+groups <- fac$affil[idx]
+pal <- hcl.colors(n=7, palette="Dark3")
+colors <- pal[as.integer(as.factor(groups))]
+```
+
+```{r fig.width=5, fig.height=5, dpi=150, out.width="70%"}
+ts
+plot(ts)
+```
+
+This takes a long time to compute!
+```{r eval=FALSE}
+wdist <- get.dist(ts, mc.cores=24)
+```
+
+Load previous calculation
+```{r}
+load("results/b7_wdist.RData")
+
+
+plot(wdist, labels=labels, col=colors)
+```
+
+```{r fig.width=5, fig.height=5}
+g <- make.knn(wdist)
+par(mar=rep(0, 4))
+plot(g, vertex.shape="none", vertex.label=labels, 
+     vertex.label.cex=0.5, vertex.size=5, vertex.label.color=colors,
+     edge.width=2, edge.arrow.mode='-')
+```
+
+Export files for interactive JavaScript
+```{r fig.width=8, fig.height=8}
+require(r2d3, quietly = TRUE)
+r2d3(data=parse_json(export.json(g, labels, groups)), script="js/graph.js", d3_version="4")
+```
+

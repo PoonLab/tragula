@@ -56,19 +56,19 @@ def process(files, xwords, debug=False, min_records=3):
     by_document = []
     all_words = {}
     for f in files:
-        author = os.path.basename(f).split('.')[0]
+        author = os.path.basename(f).replace(".json", "")
         if author in by_author:
             sys.stderr.write(f"ERROR: duplicate author {author} detected!")
             sys.exit()
-        by_author.update({author: {}})
 
         with open(f) as handle:
             records = json.load(handle)
 
-        if len(records) < min_count:
-            sys.stderr.write(f"Fewer than {len(records}} records, skipping.\n")
+        if len(records) < min_records:
+            sys.stderr.write(f"Fewer than {len(records)} records, skipping {author}.\n")
             continue
 
+        by_author.update({author: {}})
         for r in records:
             text = f"{r['title']} {r['abstract']} {' '.join(r['keywords'])}"
             tokens = nltk.word_tokenize(text)
@@ -109,7 +109,7 @@ def process(files, xwords, debug=False, min_records=3):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description)
     parser.add_argument(
-        "indir", type=str, help="Path to folder containing JSON files.")
+        "indir", type=str, nargs="+", help="Path(s) to folder(s) containing JSON files.")
     parser.add_argument(
         "--counts", type=argparse.FileType('w'), required=False,
         help="Path to write by-author word counts (JSON)")
@@ -133,7 +133,11 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     xwords = load_xwords(args.xwords)
-    files = glob(os.path.join(args.indir, "*.json"))
+    files = []
+    for indir in args.indir:
+        local_files = glob(os.path.join(indir, "*.json"))
+        sys.stderr.write(f"Detected {len(local_files)} JSON files in {indir}\n")
+        files.extend(local_files)
     debug = False
     if args.counts is None or args.matrix is None:
         debug = True
