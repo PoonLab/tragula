@@ -93,7 +93,6 @@ Load previous calculation
 ```{r}
 load("results/b7_wdist.RData")
 
-
 plot(wdist, labels=labels, col=colors)
 ```
 
@@ -108,6 +107,6 @@ plot(g, vertex.shape="none", vertex.label=labels,
 Export files for interactive JavaScript
 ```{r fig.width=8, fig.height=8}
 require(r2d3, quietly = TRUE)
-r2d3(data=parse_json(export.json(g, labels, groups)), script="js/graph.js", d3_version="4")
+r2d3(data=export.json(g, labels, groups), script="js/graph.js", d3_version="4")
 ```
 

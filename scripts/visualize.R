@@ -125,7 +125,7 @@ export.json <- function(g, labels=NA, groups=NA) {
   }
   edges <- as.data.frame(igraph::as_edgelist(g))
   names(edges) <- c('source', 'target')
-  edges$dist <- E(g)$weight
+  edges$distance <- E(g)$weight
   jsonlite::toJSON(list(nodes=nodes, edges=edges))
 }
 
