@@ -9,7 +9,7 @@ var simulation = d3.forceSimulation()
       .distance(function(d) { return d.distance; })
       )
     .force("charge", d3.forceManyBody()
-      .strength(-30)
+      .strength(-50)
       .distanceMax(100))
     .force("center", d3.forceCenter(width / 2, height / 2));
 

@@ -112,9 +112,10 @@ print.topicspace <- function(obj) {
 #' pairwise matrix using Wasserstein (earth mover's) distances.
 #' 
 #' @param obj:  S3 object of class 'topicspace'
+#' @param p: integer, power to raise Euclidean distance (default 1)
 #' @param mc.cores:  integer, number of cores if using parallel
 #' @return  dist object
-get.dist <- function(obj, mc.cores=1) {
+get.dist <- function(obj, p=1, mc.cores=1) {
   # calculate weighted point patterns
   wpps <- lapply(obj$by.author, function(counts) {
     idx <- match(obj$index$word, names(counts))
@@ -131,7 +132,7 @@ get.dist <- function(obj, mc.cores=1) {
       i <- k %/% n + 1
       j <- k %% n + 1
       if (i < j) { 
-        transport::wasserstein(wpps[[i]], wpps[[j]], prob=TRUE) 
+        transport::wasserstein(wpps[[i]], wpps[[j]], p=p, prob=TRUE) 
       } else {
         0
       }
