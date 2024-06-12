@@ -221,7 +221,15 @@ expression. This particular dataset also requires about 1 GB of RAM per
 core, so adjust for your system accordingly.
 
 ``` r
+t0 <- Sys.time()
 wdist <- get.dist(ts, mc.cores=24)
+Sys.time() - t0
+```
+
+    ## Time difference of 1.09773 mins
+
+``` r
+save(wdist, file="results/path_wdist.RData")
 class(wdist)  # show that this is a custom S3 object
 ```
 

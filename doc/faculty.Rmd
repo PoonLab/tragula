@@ -48,7 +48,10 @@ for (ini in names(tab[tab>1])) { print(fac$lastname[fac$initials==ini]) }
 ```
 
 ```{r}
-fac$initials <- paste(fac$initials, substr(fac$lastname, 2, 2), sep="")
+# make some more convenient labels
+fac$labels <- paste(substr(fac$forename, 1, 1),
+                    substr(fac$lastname, 1, 4), sep="")
+  #paste(fac$initials, substr(fac$lastname, 2, 2), sep="")
 fac$filename <- gsub(" ", "_", paste(fac$lastname, fac$forename, sep="_"))
 ```
 
@@ -70,10 +73,10 @@ ts <- topicspace(
   index.path = "results/b7_index.csv",
   cooccur.path = "results/b7_cooccur.csv",
   author.path = "results/b7_counts.json",
-  max.words=5000, n.comp=3)
+  max.words=10000, n.comp=3)
 
 idx <- match(names(ts$by.author), fac$filename)
-labels <- fac$initials[idx]
+labels <- fac$label[idx]
 groups <- fac$affil[idx]
 pal <- hcl.colors(n=7, palette="Dark3")
 colors <- pal[as.integer(as.factor(groups))]
@@ -85,19 +88,22 @@ plot(ts)
 ```
 
 This takes a long time to compute!
-```{r eval=FALSE}
+```{r cache=TRUE, eval=FALSE}
+t0 <- Sys.time()
 wdist <- get.dist(ts, mc.cores=24)
+Sys.time() - t0
+#save(wdist, file="results/b7_wdist_10E4.RData")
 ```
 
 Load previous calculation
 ```{r}
-load("results/b7_wdist.RData")
+load("results/b7_wdist_10E4.RData")
 
 plot(wdist, labels=labels, col=colors)
 ```
 
 ```{r fig.width=5, fig.height=5}
-g <- make.knn(wdist)
+g <- make.knn(wdist, k=3)
 par(mar=rep(0, 4))
 plot(g, vertex.shape="none", vertex.label=labels, 
      vertex.label.cex=0.5, vertex.size=5, vertex.label.color=colors,

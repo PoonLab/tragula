@@ -1,80 +1,80 @@
-lastname	forename	initials	query
-Al Mutawa	Fatimah	FAM	"Al Mutawa, Fatimah"
-Ang	Lee Cyn	LCA	"Ang, Lee Cyn"
-Armstrong	Chris	CA	"Armstrong, Christopher and western university"
-Bhattacharjee	Rabindra	RB	"Bhattacharjee, Rabindra"
-Bhayana	Vipin	VB	"Bhayana, Vipin"
-Budhram	Adrian	AB	"Budhram, Adrian"
-Cabrera	Ana	AC	ana cabrera NOT Ana R cabrera NOT Ana María García Cabrera
-Cameron	Lisa	LC	"Cameron, Lisa NOT Cameron, LA NOT Cameron LJ"
-Castellani	Christina	CC	"Castellani, Christina"
-Cecchini	Matthew	MC	"cecchini, matthew"
-Chan	Nancy	NC	"Chan, Nancy and canada"
-Chakrabarti	Subrata	SC	"Chakrabarti, Subrata"
-Chin-Yee	Ian	ICY	"Chin-Yee, Ian"
-Darling	Mark	MRD	"darling, mark R"
-Delport	Johan	JD	"Delport, Johan"
-Dhanvantari	Savita	SD	"Dhanvantari, Savita"
-Dick	Fred	FD	"Dick, Fred"
-Djordjevic	Bojana	BD	"Djordjevic, Bojana"
-Dong	Cecilia	CD	"Dong, Cecilia S"
-Driman	David	DD	"Driman, David K"
-Elsayed	Sameer	SE	"elsayed, sameer"
-Ettler	Helen	HE	"Ettler, Helen C"
-Frisbee	Stephanie	SF	"Frisbee, Stephanie"
-Fuller	Jeff	JF	"Fuller, Jeff and canada"
-Gabril	Manal	MG	"Gabril, Manal"
-Garcia	Bertha	BG	"Garcia, Bertha"
-Goebel	Emily	EG	"Goebel, Emily"
-Gomaa	Noha	NG	"Gomaa, Noha"
-Gomez-Lemus	Jose	JGL	"gomez-lemus, jose"
-Haig	Aaron	AH	"Haig, Aaron"
-Hammond	Robert	RH	"Hammond, Robert and canada"
-Howlett	Chris	CH	"Howlett, Christopher"
-Hutnik	Cindy	CH	"Hutnik, Cindy"
-Iwaza	Jonathan	JI	"Izawa, Jonathan"
-Jacques	Rebekah	RJ	"Jacques, Rebekah"
-Joseph	Mariamma	MJ	"Joseph, Mariamma"
-Khan	Zia	ZK	"Khan, Zia A"
-Kiser	Patti	PK	"Kiser, Patti"
-Knauer	Michael	MK	"Knauer, Michael and Canada"
-Kum	Jina	JK	"Kum, Jina"
-Kwan	Keith	KK	"Kwan, Keith NOT Keith K K Kwan NOT Keith C K Kwan"
-Lalonde	Emilie	EL	"Lalonde, Emilie"
-Maleki Vareki	Saman	SMV	"Maleki Vareki, Saman"
-McCord	Christina	CMC	"McCord, Christina"
-McKinley	Gerald	GMK	"McKinley, Gerald"
-Min	Wei Ping	WPM	"Min, Wei Ping"
-Mohseni Meybodi	Anahita	AMM	"Mohseni Meybodi, Anahita"
-Moussa	Madeleine	MM	"Moussa, Madeleine"
-Nichols	Matthew	MN	"Nichols, Matthew and Canada"
-Olea Popelka	Francisco	FOP	"Olea Popelka, Francisco"
-Parfitt	Jeremy	JP	"Parfitt, Jeremy"
-Peng	Tianjing	TP	"Peng, Tianqing"
-Poon	Art	AP	"Poon, Art"
-Quinones-Mateu	Miguel	MQM	"Quinones-Mateu, Miguel"
-Rupar	Tony	TR	"Rupar, Tony"
-Rutledge	Angela	AR	"Rutledge, Angela"
-Sadikovic	Bekim	BS	"Sadikovic, Bekim"
-Sangle	Nikhil	NS	"Sangle, Nikhil"
-Schenkel	Laila	LS	"Schenkel, Laila C"
-Sharma	Anurag	AS	"Sharma, Anurag and (Cleveland OR Canada)"
-Shkrum	Michael	MS	"Shkrum, Michael"
-Shooshtari	Parisa	PS	"Shooshtari, Parisa"
-Sidahmed	Abubaker	AS	"Sidahmed, Abubaker"
-Solh	Ziad	ZS	"Solh, Ziad"
-Stevic	Ivan	IS	"Stevic, Ivan"
-Strong	Michael	MS	"Strong, Michael J"
-Tugaleva	Elena	ET	"Tugaleva, Elena"
-Tweedie	Ted	TT	"Tweedie, Edward"
-Walsh	Joanna	JW	"Walsh, Joanna"
-Wehrli	Bret	BW	"Wehrli, Bret"
-Weir	Michele	MW	"Weir, Michele"
-Wylie	Lloy	LW	"Wylie, Lloy"
-Yang	Liju	LY	"Yang, Liju and Canada"
-Zemanpocrnich	Cady	CZ	"Zemanpocrnich, Cady"
-Zhang	Qi	QZ	"Zhang, Qi AND (""western university"" OR ""university of manitoba"")"
-Zhang	Zhu-Xu	ZXZ	"Zhang, Zhuxu"
-Zhao	Liena	LZ	"Zhao, Liena"
-Zheng	Xiufen	XZ	"Zheng, Xiufen and Canada"
-Zhou	Xiao Zhen	XZZ	"Zhou, Xiao Zhen"
+lastname	forename	initials	query	bioinformatics	cancer	cardiovascular	computational	epigenetics	infection	education	one	oral	neurologic	regenerative	quality
+Al Mutawa	Fatimah	FAM	Al Mutawa, Fatimah						T						T
+Ang	Lee Cyn	LCA	Ang, Lee Cyn										T		
+Armstrong	Chris	CA	Armstrong, Christopher and western university		T										T
+Bhattacharjee	Rabindra	RB	Bhattacharjee, Rabindra						T					T	
+Bhayana	Vipin	VB	Bhayana, Vipin			T									T
+Budhram	Adrian	AB	Budhram, Adrian						T				T		T
+Cabrera	Ana	AC	ana cabrera NOT Ana R cabrera NOT Ana María García Cabrera						T		T				T
+Cameron	Lisa	LC	Cameron, Lisa NOT Cameron, LA NOT Cameron LJ			T			T		T				
+Castellani	Christina	CC	Castellani, Christina	T		T		T			T				
+Cecchini	Matthew	MC	cecchini, matthew		T	T	T			T					T
+Chan	Nancy	NC	Chan, Nancy and canada		T										T
+Chakrabarti	Subrata	SC	Chakrabarti, Subrata		T	T	T	T							
+Chin-Yee	Ian	ICY	Chin-Yee, Ian		T	T			T						T
+Darling	Mark	MRD	darling, mark R		T							T			T
+Delport	Johan	JD	Delport, Johan						T		T				T
+Dhanvantari	Savita	SD	Dhanvantari, Savita			T									
+Dick	Fred	FD	Dick, Fred	T	T			T							
+Djordjevic	Bojana	BD	Djordjevic, Bojana												
+Dong	Cecilia	CD	Dong, Cecilia S							T		T			
+Driman	David	DD	Driman, David K		T		T			T					T
+Elsayed	Sameer	SE	elsayed, sameer						T		T				T
+Ettler	Helen	HE	Ettler, Helen C		T					T					T
+Frisbee	Stephanie	SF	Frisbee, Stephanie			T				T	T				
+Fuller	Jeff	JF	Fuller, Jeff and canada						T		T				T
+Gabril	Manal	MG	Gabril, Manal		T										T
+Garcia	Bertha	BG	Garcia, Bertha		T					T				T	T
+Goebel	Emily	EG	Goebel, Emily		T					T					T
+Gomaa	Noha	NG	Gomaa, Noha							T	T	T			
+Gomez-Lemus	Jose	JGL	gomez-lemus, jose		T										T
+Haig	Aaron	AH	Haig, Aaron		T									T	T
+Hammond	Robert	RH	Hammond, Robert and canada		T		T		T	T			T		
+Howlett	Chris	CH	Howlett, Christopher		T										T
+Hutnik	Cindy	CH	Hutnik, Cindy			T									
+Iwaza	Jonathan	JI	Izawa, Jonathan		T										
+Jacques	Rebekah	RJ	Jacques, Rebekah							T				T	
+Joseph	Mariamma	MJ	Joseph, Mariamma		T	T									T
+Khan	Zia	ZK	Khan, Zia A		T	T			T					T	
+Kiser	Patti	PK	Kiser, Patti						T		T			T	
+Knauer	Michael	MK	Knauer, Michael and Canada												T
+Kum	Jina	JK	Kum, Jina							T					
+Kwan	Keith	KK	Kwan, Keith NOT Keith K K Kwan NOT Keith C K Kwan		T										T
+Lalonde	Emilie	EL	Lalonde, Emilie	T	T										
+Maleki Vareki	Saman	SMV	Maleki Vareki, Saman		T				T						
+McCord	Christina	CMC	McCord, Christina		T					T		T			T
+McKinley	Gerald	GMK	McKinley, Gerald								T				
+Min	Wei Ping	WPM	Min, Wei Ping		T	T			T					T	
+Mohseni Meybodi	Anahita	AMM	Mohseni Meybodi, Anahita					T							T
+Moussa	Madeleine	MM	Moussa, Madeleine		T										
+Nichols	Matthew	MN	Nichols, Matthew and Canada												T
+Olea Popelka	Francisco	FOP	Olea Popelka, Francisco						T	T	T				
+Parfitt	Jeremy	JP	Parfitt, Jeremy		T										T
+Peng	Tianjing	TP	Peng, Tianqing			T			T						
+Poon	Art	AP	Poon, Art	T				T	T		T				
+Quinones-Mateu	Miguel	MQM	Quinones-Mateu, Miguel						T						T
+Rupar	Tony	TR	Rupar, Tony												T
+Rutledge	Angela	AR	Rutledge, Angela			T									T
+Sadikovic	Bekim	BS	Sadikovic, Bekim	T	T			T					T		T
+Sangle	Nikhil	NS	Sangle, Nikhil		T	T									T
+Schenkel	Laila	LS	Schenkel, Laila C	T	T			T							T
+Sharma	Anurag	AS	Sharma, Anurag and (Cleveland OR Canada)												
+Shkrum	Michael	MS	Shkrum, Michael							T					
+Shooshtari	Parisa	PS	Shooshtari, Parisa	T	T			T							
+Sidahmed	Abubaker	AS	Sidahmed, Abubaker						T					T	T
+Solh	Ziad	ZS	Solh, Ziad			T								T	T
+Stevic	Ivan	IS	Stevic, Ivan												T
+Strong	Michael	MS	Strong, Michael J										T		
+Tugaleva	Elena	ET	Tugaleva, Elena							T					
+Tweedie	Ted	TT	Tweedie, Edward			T				T					
+Walsh	Joanna	JW	Walsh, Joanna		T					T					T
+Wehrli	Bret	BW	Wehrli, Bret		T	T									T
+Weir	Michele	MW	Weir, Michele		T					T					T
+Wylie	Lloy	LW	Wylie, Lloy			T					T				
+Yang	Liju	LY	Yang, Liju and Canada			T			T		T				T
+Zemanpocrnich	Cady	CZ	Zemanpocrnich, Cady		T	T									T
+Zhang	Qi	QZ	"Zhang, Qi AND (""western university"" OR ""university of manitoba"")"		T		T						T		T
+Zhang	Zhu-Xu	ZXZ	Zhang, Zhuxu			T			T					T	
+Zhao	Liena	LZ	Zhao, Liena		T										T
+Zheng	Xiufen	XZ	Zheng, Xiufen and Canada		T	T			T					T	T
+Zhou	Xiao Zhen	XZZ	Zhou, Xiao Zhen												

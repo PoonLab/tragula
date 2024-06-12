@@ -146,7 +146,10 @@ This is one of the most time-consuming steps of the analysis, so I have set it u
 Hopefully your computer's CPU has at least this many cores; if not, make sure you to decrease the `mc.cores` argument in the following expression.
 This particular dataset also requires about 1 GB of RAM per core, so adjust for your system accordingly.
 ```{r cache=TRUE}
+t0 <- Sys.time()
 wdist <- get.dist(ts, mc.cores=24)
+Sys.time() - t0
+save(wdist, file="results/palm_wdist.RData")
 class(wdist)  # show that this is a custom S3 object
 ```
 
