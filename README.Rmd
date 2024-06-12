@@ -1,5 +1,6 @@
 ---
 title: "tragula"
+author: Mapping networks of shared research expertise by word embedding analysis
 output: github_document
 ---
 
@@ -10,6 +11,10 @@ knitr::opts_chunk$set(
   )
 knitr::opts_knit$set(root.dir="~/git/tragula")
 ```
+
+<center>
+<img src="img/network.png" height=400/>
+</center>
 
 A pervasive obstacle to scientific collaboration is becoming aware of your peers - those with shared research interests.
 Similarly, academic units (*e.g.*, departments) are often tasked with identifing clusters of expertise.

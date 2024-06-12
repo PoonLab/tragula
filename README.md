@@ -1,5 +1,10 @@
 tragula
 ================
+Mapping networks of shared research expertise by word embedding analysis
+
+<center>
+<img src="img/network.png" height=400/>
+</center>
 
 A pervasive obstacle to scientific collaboration is becoming aware of
 your peers - those with shared research interests. Similarly, academic
@@ -226,10 +231,10 @@ wdist <- get.dist(ts, mc.cores=24)
 Sys.time() - t0
 ```
 
-    ## Time difference of 1.09773 mins
+    ## Time difference of 1.029745 mins
 
 ``` r
-save(wdist, file="results/path_wdist.RData")
+save(wdist, file="results/palm_wdist.RData")
 class(wdist)  # show that this is a custom S3 object
 ```
 
