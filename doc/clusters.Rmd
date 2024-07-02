@@ -1,0 +1,69 @@
+---
+title: "Comparing network clusters from tragula with expert-curated clusters"
+author: "Art Poon"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+knitr::opts_knit$set(root.dir="~/git/tragula")
+```
+
+Load information about department faculty, where I have manually added annotations on the membership of faculty members in 12 areas of research.  These areas were identified through questionnaires and manual assessment of clusters.
+```{r}
+palm <- read.csv("data/palm.tsv", sep='\t')
+for (i in 5:ncol(palm)) {
+  palm[is.na(palm[,i]), i] <- FALSE
+}
+```
+
+Next, we'll load the Wasserstein distance matrix that was pre-computed for the main README document.
+```{r warning=FALSE, message=FALSE}
+load("results/palm_wdist.RData")
+
+# make sure labels match the distance matrix
+palm$filename <- paste(palm$lastname, palm$forename, sep="_")
+palm$filename <- gsub(" ", "_", palm$filename)
+idx <- match(attr(wdist, "Labels"), palm$filename)
+labels <- palm$initials[idx]
+```
+
+Let's start with the original network community detection analysis of these data:
+```{r fig.width=5, fig.height=5, dpi=150, out.width="66%"}
+source("scripts/visualize.R")
+g <- make.knn(wdist, k=3)
+
+require(igraph, quietly=TRUE)
+cl <- cluster_louvain(g)
+par(mar=rep(0, 4))
+plot(g, mark.groups=cl, vertex.shape="none", vertex.label=labels, 
+     vertex.label.cex=0.7, vertex.size=6, 
+     edge.width=2, edge.arrow.mode='-')
+```
+
+A significant issue is that there are an enormous number of ways to cluster these data, not only by varying the criteria for drawing edges (distance threshold and maximum in-degree), but also by changing the community detection method applied to the graph:
+```{r fig.width=5, fig.height=5, dpi=150, out.width="66%"}
+res <- cluster_label_prop(g)
+sum(sapply(groups(res), length))
+par(mar=rep(0, 4))
+plot(g, mark.groups=res, vertex.shape="none", vertex.label=labels,
+     vertex.label.cex=0.9, vertex.size=6,
+     edge.width=2, edge.arrow.mode='-')
+```
+
+## Measuring concordance
+Let's calculate the adjusted Rand index for concordance of partitions with potentially overlapping communities (omega index, Collins and Dent 1988):
+$$\omega(C_1, C_2) = \frac{\omega_u(C_1, C_2) - \omega_e(C_1, C_2)}{1-\omega_e(C_1, C_2)}$$
+where
+$$\omega_u(C_1, C_2) = \frac{1}{M} \sum_{j=0}^{\max(K_1, K_2)} | t_j(C_1) \cap t_j(C_2)|$$
+is the unadjusted omega index with $M={n\choose 2}$ node pairs, $K_1$ is the number of communities in partition $C_1$, and $t_j(C)$ is set of node pairs that appear exactly $j$ times in partition $C$ (Xie, Kelley and Szymanski, https://arxiv.org/abs/1110.5813v4).
+The expected value is calculated as:
+$$\omega_e(C_1, C_2) = \frac{1}{M^2} \sum_{j=0}^{\max(K_1, K_2)} |t_j(C_1)| \cdot |t_j(C_2)|$$
