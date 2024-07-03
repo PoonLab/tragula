@@ -32,8 +32,10 @@ load("results/palm_wdist.RData")
 # make sure labels match the distance matrix
 palm$filename <- paste(palm$lastname, palm$forename, sep="_")
 palm$filename <- gsub(" ", "_", palm$filename)
+palm$label <- paste(substr(palm$forename, 1, 1), 
+                    substr(gsub("[ -]", "", palm$lastname), 1, 4), sep="")
 idx <- match(attr(wdist, "Labels"), palm$filename)
-labels <- palm$initials[idx]
+labels <- palm$label[idx]
 ```
 
 Let's start with the original network community detection analysis of these data:
@@ -59,11 +61,44 @@ plot(g, mark.groups=res, vertex.shape="none", vertex.label=labels,
      edge.width=2, edge.arrow.mode='-')
 ```
 
+The clique percolation algorithm allows for overlapping communities.
+In the following plot, nodes that are assigned to two or more communities are labelled with multiple colours:
+```{r fig.width=5, fig.height=5, dpi=150, out.width="66%"}
+require(CliquePercolation, quietly = TRUE)
+require(qgraph, quietly=TRUE)
+require(ggfree)
+W <- getWmat(g)
+row.names(W) <- colnames(W) <- labels
+qg <- qgraph(W)
+cp <- cpAlgorithm(qg, k=3, method='unweighted')
+m <- length(cp$list.of.communities.labels)
+pal <- gg.rainbow(m, l=80)
+col.net <- cpColoredGraph(W, list.of.communities = cp$list.of.communities.labels, 
+                          own.colors=pal)
+```
+
+
 ## Measuring concordance
 Let's calculate the adjusted Rand index for concordance of partitions with potentially overlapping communities (omega index, Collins and Dent 1988):
 $$\omega(C_1, C_2) = \frac{\omega_u(C_1, C_2) - \omega_e(C_1, C_2)}{1-\omega_e(C_1, C_2)}$$
 where
 $$\omega_u(C_1, C_2) = \frac{1}{M} \sum_{j=0}^{\max(K_1, K_2)} | t_j(C_1) \cap t_j(C_2)|$$
 is the unadjusted omega index with $M={n\choose 2}$ node pairs, $K_1$ is the number of communities in partition $C_1$, and $t_j(C)$ is set of node pairs that appear exactly $j$ times in partition $C$ (Xie, Kelley and Szymanski, https://arxiv.org/abs/1110.5813v4).
+(Xie *et al.* refer to partitions as "covers", but I prefer the former terminology.)
 The expected value is calculated as:
 $$\omega_e(C_1, C_2) = \frac{1}{M^2} \sum_{j=0}^{\max(K_1, K_2)} |t_j(C_1)| \cdot |t_j(C_2)|$$
+
+We can implement this in R with a function taking two lists of community memberships per node:
+```{r}
+omega <- function(c1, c2) {
+  # check that input lists have exactly the same labels
+  
+}
+# prepare inputs
+c1 <- lapply(5:16, function(i) palm$label[which(palm[,i])])
+c2 <- lapply(cp$list.of.communities.numbers, function(i) labels[i])
+```
+
+
+
+
