@@ -54,7 +54,7 @@ plot(g, mark.groups=cl, vertex.shape="none", vertex.label=labels,
 A significant issue is that there are an enormous number of ways to cluster these data, not only by varying the criteria for drawing edges (distance threshold and maximum in-degree), but also by changing the community detection method applied to the graph:
 ```{r fig.width=5, fig.height=5, dpi=150, out.width="66%"}
 res <- cluster_label_prop(g)
-sum(sapply(groups(res), length))
+#sum(sapply(igraph::groups(res), length))
 par(mar=rep(0, 4))
 plot(g, mark.groups=res, vertex.shape="none", vertex.label=labels,
      vertex.label.cex=0.9, vertex.size=6,
@@ -87,12 +87,45 @@ is the unadjusted omega index with $M={n\choose 2}$ node pairs, $K_1$ is the num
 (Xie *et al.* refer to partitions as "covers", but I prefer the former terminology.)
 The expected value is calculated as:
 $$\omega_e(C_1, C_2) = \frac{1}{M^2} \sum_{j=0}^{\max(K_1, K_2)} |t_j(C_1)| \cdot |t_j(C_2)|$$
+This method examines pairs of nodes because any one community does not carry a label that would enable us to evaluate the concordance of two partitions.
+In other words, we cannot check whether node A is in the same community in both $C_1$ and $C_2$.
+Belonging to the *same* community as a second node B *does* make it possible to make this comparison.
 
 We can implement this in R with a function taking two lists of community memberships per node:
 ```{r}
-omega <- function(c1, c2) {
-  # check that input lists have exactly the same labels
+require(combinat)
+count.nodes <- function(nodes, cvr) {
+  # count the number of community memberships per node
+  counts <- sapply(nodes, function(node) {
+    sum(sapply(cvr, function(comm) is.element(node, comm))) 
+    })
   
+  cache <- list()
+  for (j in 0:max(counts)) {
+    # candidate nodes
+    cand <- names(counts)[which(counts==j)]
+    cmx <- combinat::combn2(cand)  # all pairs
+    if (j == 0) {
+      pairs[[0]] <- cmx
+    } else {
+      # filter pairs for those with exactly the same memberships
+      apply(cmx, 1, function(row) {
+        
+      })      
+    }
+
+  }
+}
+
+omega <- function(nodes, c1, c2) {
+  pairs1 <- list()
+  pairs2 <- list()
+  max.K <- max(length(c1), length(c2))
+  n <- length(nodes)
+  M <- choose(n, 2)
+  omega.u <- 0
+  omega.e <- 0
+
 }
 # prepare inputs
 c1 <- lapply(5:16, function(i) palm$label[which(palm[,i])])
