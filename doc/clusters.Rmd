@@ -93,40 +93,51 @@ Belonging to the *same* community as a second node B *does* make it possible to 
 
 We can implement this in R with a function taking two lists of community memberships per node:
 ```{r}
-require(combinat)
-count.nodes <- function(nodes, cvr) {
-  # count the number of community memberships per node
-  counts <- sapply(nodes, function(node) {
-    sum(sapply(cvr, function(comm) is.element(node, comm))) 
-    })
-  
-  cache <- list()
-  for (j in 0:max(counts)) {
-    # candidate nodes
-    cand <- names(counts)[which(counts==j)]
-    cmx <- combinat::combn2(cand)  # all pairs
-    if (j == 0) {
-      pairs[[0]] <- cmx
-    } else {
-      # filter pairs for those with exactly the same memberships
-      apply(cmx, 1, function(row) {
-        
-      })      
-    }
+require(combinat, quietly=TRUE)
 
+get.pairs <- function(nodes, cvr) {
+  # which communities does each node appear in?
+  membership <- lapply(nodes, function(node) {
+    which(sapply(cvr, function(x) is.element(node, x)))
+    })
+  names(membership) <- nodes
+  counts <- sapply(membership, length)
+  
+  pairs <- list()
+  for (j in 0:max(counts)) {
+    cand <- nodes[which(counts==j)]  # candidate nodes
+    cmx <- combinat::combn2(cand)  # all pairs
+
+    # filter pairs for those with exactly the same memberships
+    same <- apply(cmx, 1, function(row) {
+      all(membership[[row[1]]] == membership[[row[2]]])
+    })
+    
+    pairs[[as.character(j)]] <- cmx[same, ]
   }
+  pairs
 }
 
 omega <- function(nodes, c1, c2) {
-  pairs1 <- list()
-  pairs2 <- list()
+  tj1 <- get.pairs(nodes, c1)
+  tj2 <- get.pairs(nodes, c2)
+  
   max.K <- max(length(c1), length(c2))
   n <- length(nodes)
   M <- choose(n, 2)
   omega.u <- 0
   omega.e <- 0
-
+  
+  for (j in 0:max.K) {
+    jj <- as.character(j)
+    omega.u <- omega.u + length(intersect(
+      apply(tj1[[jj]], 1, function(x) paste(sort(x), collapse=' ')),
+      apply(tj2[[jj]], 1, function(x) paste(sort(x), collapse=' '))
+      ))
+    omega.e <- omega.e + nrow(tj1[[jj]]) * nrow(tj2[[jj]])
+  }
 }
+
 # prepare inputs
 c1 <- lapply(5:16, function(i) palm$label[which(palm[,i])])
 c2 <- lapply(cp$list.of.communities.numbers, function(i) labels[i])
