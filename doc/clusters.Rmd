@@ -81,10 +81,13 @@ col.net <- cpColoredGraph(W, list.of.communities = cp$list.of.communities.labels
 ## Measuring concordance
 Let's calculate the adjusted Rand index for concordance of partitions with potentially overlapping communities (omega index, Collins and Dent 1988):
 $$\omega(C_1, C_2) = \frac{\omega_u(C_1, C_2) - \omega_e(C_1, C_2)}{1-\omega_e(C_1, C_2)}$$
-where
+where $\omega_u$ is the unadjusted omega index and $\omega_e$ is the omega index expected by chance.
+This implies that $\omega_u$ has a maximum of $1$ and a minimum of $\omega_e$.
+
+The unadjusted omega index is calculated as:
 $$\omega_u(C_1, C_2) = \frac{1}{M} \sum_{j=0}^{\max(K_1, K_2)} | t_j(C_1) \cap t_j(C_2)|$$
-is the unadjusted omega index with $M={n\choose 2}$ node pairs, $K_1$ is the number of communities in partition $C_1$, and $t_j(C)$ is set of node pairs that appear exactly $j$ times in partition $C$ (Xie, Kelley and Szymanski, https://arxiv.org/abs/1110.5813v4).
-(Xie *et al.* refer to partitions as "covers", but I prefer the former terminology.)
+where $M$ is the total number of node pairs, $K_i$ is the number of communities in partition $C_i$, and $t_j(C)$ is set of node pairs that appear in 8exactly $j$ clusters in partition $C$ (Xie, Kelley and Szymanski, https://arxiv.org/abs/1110.5813v4).
+(Xie *et al.* refer to partitions as "covers".)
 The expected value is calculated as:
 $$\omega_e(C_1, C_2) = \frac{1}{M^2} \sum_{j=0}^{\max(K_1, K_2)} |t_j(C_1)| \cdot |t_j(C_2)|$$
 This method examines pairs of nodes because any one community does not carry a label that would enable us to evaluate the concordance of two partitions.
@@ -95,52 +98,65 @@ We can implement this in R with a function taking two lists of community members
 ```{r}
 require(combinat, quietly=TRUE)
 
+#' Returns all pairs of nodes with same cluster memberships
+#' @param nodes:  character, labels for all nodes
+#' @param cvr:  list, character vectors of labels for each cluster
+#' @return list, matched node pairs by number of clusters
 get.pairs <- function(nodes, cvr) {
   # which communities does each node appear in?
   membership <- lapply(nodes, function(node) {
     which(sapply(cvr, function(x) is.element(node, x)))
     })
   names(membership) <- nodes
-  counts <- sapply(membership, length)
   
   pairs <- list()
-  for (j in 0:max(counts)) {
-    cand <- nodes[which(counts==j)]  # candidate nodes
-    cmx <- combinat::combn2(cand)  # all pairs
-
-    # filter pairs for those with exactly the same memberships
-    same <- apply(cmx, 1, function(row) {
-      all(membership[[row[1]]] == membership[[row[2]]])
-    })
-    
-    pairs[[as.character(j)]] <- cmx[same, ]
+  cmx <- combinat::combn2(nodes)
+  for (i in 1:nrow(cmx)) {
+    u <- cmx[i, 1]
+    v <- cmx[i, 2]
+    if (u > v) { temp <- v; v <- u; u <- temp }
+    key <- paste(u, v, sep=" ")
+    n <- length(intersect(membership[[u]], membership[[v]]))
+    pairs[[key]] <- n
   }
   pairs
 }
 
 omega <- function(nodes, c1, c2) {
-  tj1 <- get.pairs(nodes, c1)
-  tj2 <- get.pairs(nodes, c2)
+  pairs1 <- get.pairs(nodes, c1)
+  pairs2 <- get.pairs(nodes, c2)
+  M <- choose(length(nodes), 2)
   
-  max.K <- max(length(c1), length(c2))
-  n <- length(nodes)
-  M <- choose(n, 2)
+  # observed value
   omega.u <- 0
-  omega.e <- 0
-  
-  for (j in 0:max.K) {
-    jj <- as.character(j)
-    omega.u <- omega.u + length(intersect(
-      apply(tj1[[jj]], 1, function(x) paste(sort(x), collapse=' ')),
-      apply(tj2[[jj]], 1, function(x) paste(sort(x), collapse=' '))
-      ))
-    omega.e <- omega.e + nrow(tj1[[jj]]) * nrow(tj2[[jj]])
+  for (key in names(pairs1)) {
+    if (pairs1[[key]] == pairs2[[key]]) {
+      omega.u <- omega.u + 1
+    }
   }
+  omega.u <- omega.u / M
+  
+  # expected value
+  n1 <- as.integer(pairs1)
+  n2 <- as.integer(pairs2)
+  K <- max(c(n1, n2))
+  omega.e <- sum(sapply(0:K, function(j) {
+    sum(n1==j) * sum(n2==j)
+  })) / (M*M)
+  return ((omega.u-omega.e) / (1-omega.e))
 }
+```
 
-# prepare inputs
+
+
+```{r}
+# 
 c1 <- lapply(5:16, function(i) palm$label[which(palm[,i])])
+
+# clique percolation
 c2 <- lapply(cp$list.of.communities.numbers, function(i) labels[i])
+omega(labels, c1, c2)  # this should be about 0.013295
+omega(labels, c1, c1)  # this should be one
 ```
 
 
