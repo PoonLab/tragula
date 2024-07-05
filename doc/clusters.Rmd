@@ -38,11 +38,23 @@ idx <- match(attr(wdist, "Labels"), palm$filename)
 labels <- palm$label[idx]
 ```
 
-Let's start with the original network community detection analysis of these data:
+Display the manual clustering of members into areas of research:
 ```{r fig.width=5, fig.height=5, dpi=150, out.width="66%"}
 source("scripts/visualize.R")
 g <- make.knn(wdist, k=3)
 
+areas <- apply(palm[,5:16], 2, function(x) {
+  palm$filename[which(x)]
+})
+
+par(mar=rep(0,4))
+plot(g, mark.groups=areas, vertex.label=labels, vertex.label.cex=0.7, 
+     vertex.shape="none", edge.width=2, edge.arrow.mode='-')
+```
+
+
+Let's start with the original network community detection analysis of these data:
+```{r fig.width=5, fig.height=5, dpi=150, out.width="66%"}
 require(igraph, quietly=TRUE)
 cl <- cluster_louvain(g)
 par(mar=rep(0, 4))
@@ -57,7 +69,7 @@ res <- cluster_label_prop(g)
 #sum(sapply(igraph::groups(res), length))
 par(mar=rep(0, 4))
 plot(g, mark.groups=res, vertex.shape="none", vertex.label=labels,
-     vertex.label.cex=0.9, vertex.size=6,
+     vertex.label.cex=0.7, vertex.size=6,
      edge.width=2, edge.arrow.mode='-')
 ```
 
@@ -122,6 +134,7 @@ get.pairs <- function(nodes, cvr) {
   pairs
 }
 
+#' Calculates an clustering agreement index 
 omega <- function(nodes, c1, c2) {
   pairs1 <- get.pairs(nodes, c1)
   pairs2 <- get.pairs(nodes, c2)
@@ -148,17 +161,26 @@ omega <- function(nodes, c1, c2) {
 ```
 
 
-
+This cluster agreement index is quite low for different clustering methods relative to the manual clustering (research areas):
 ```{r}
-# 
 c1 <- lapply(5:16, function(i) palm$label[which(palm[,i])])
+omega(labels, c1, c1)  # this should be one
 
 # clique percolation
 c2 <- lapply(cp$list.of.communities.numbers, function(i) labels[i])
-omega(labels, c1, c2)  # this should be about 0.013295
-omega(labels, c1, c1)  # this should be one
+omega(labels, c1, c2)
+
+# Louvain clustering
+c3 <- split(labels, cl$membership)
+omega(labels, c1, c3)
+
+# label propagation
+c4 <- split(labels, res$membership)
+omega(labels, c1, c4)
+
+# how well do clustering methods agree with each other?
+omega(labels, c2, c3)
+omega(labels, c2, c4)
+omega(labels, c3, c4)
 ```
-
-
-
 
