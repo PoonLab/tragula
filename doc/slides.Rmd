@@ -1,0 +1,80 @@
+---
+title: "Generating networks of shared research expertise"
+author: "Art Poon"
+date: 'Departments of Pathology and Laboratory Medicine; Microbiology and Immunology; Computer Science'
+output: 
+  revealjs::revealjs_presentation:
+    self_contained: true
+    css: Rmd-style.css
+    center: true
+    highlight: zenburn
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Expertise mapping
+
+* A common task for academic units is to identify clusters of research interests/expertise
+  * Recruiting prospective graduate students
+  * Facilitating interactions among faculty
+* This task is often done manually, which is subjective, tedious, and time-consuming.
+
+---
+
+## Objectives
+
+* Develop an automated workflow to:
+  * extract research themes from each member's contributions to the peer-reviewed literature
+  * use multivariate analysis to determine each member's relation to their  peers based on shared research themes
+  * develop visualizations of analysis outputs
+* Release as an open source project that might be used by other groups
+
+---
+
+## Database
+
+* NCBI PubMed can be accessed through the Entrez API
+  * Results are returned in an XML format by default
+* Biopython provides an interface to this API and XML parsing functions
+
+```python
+>>> from Bio import Entrez
+>>> Entrez.email = "apoon42@uwo.ca"
+>>> response = Entrez.esearch(db="pubmed", term="Art Poon")
+>>> result = Entrez.read(response)
+>>> result
+{'Count': '112', 'RetMax': '20', 'RetStart': '0', 'IdList': ['38485563', '38355869', '37547379', '37463439', '37292785', '37187604', '37101658', '36846827', '36809686', '36632480', '36449514', '36395093', '36178092', '35916373', '37552744', '35500121', '35202429', '34941890', '37124703', '34578305'], 'TranslationSet': [{'From': 'Art Poon', 'To': 'Poon, Art[Full Author Name]'}], 'QueryTranslation': 'poon, art[Author]'}
+```
+
+---
+
+## Data collection
+
+* Retrieve title, keywords and abstract for all PubMed records associated with author query
+  * Exclude titles starting with "Author Correction" or "Correction"
+* Manually compose query to exclude other authors
+  * *e.g.*, `Cameron, Lisa NOT Cameron, LA NOT Cameron LJ`
+* Write results to a JSON file for each member.
+
+---
+
+## Natural language processing
+
+* Using Python module `nltk` (natural language toolkit)
+* Word tokenizer breaks strings down into words and punctuation.
+* Part-of-speech tagging categorizes words by their meaning and context.
+* Exclude punctuation, coordinating conjunctions and other words in a manually-curated list, *e.g.*, "when"
+
+---
+
+## Term-document matrix
+
+* Count the co-occurrences of words per document (title+keywords+abstract)
+
+```{r echo=FALSE}
+
+```
+
+
