@@ -55,14 +55,14 @@ topicspace <- function(index.path, cooccur.path, author.path,
 #' @param obj:  S3 object of class 'topicspace'
 #' @param author:  character, if specified, then overlay the word frequency 
 #'                 distribution for a specific author
-#' @param limit:  integer, number of words to display (in decreasing order
-#'                of global word frequency); defaults to 100
+#' @param idx:  integer, index of words to display (in decreasing order
+#'              of global word frequency); defaults to 100
 #' @param pt.cex:  numeric, character expansion factor for points, not 
 #'                 including author-specific point scaling
 #' @param text.cex:  numeric, character expansion factor for text
 #' @param scale:  numeric, scaling factor for author-specific points
 #' @param ...:  other options passed to the initial call to plot()
-plot.topicspace <- function(obj, i=1, j=2, author=NA, limit=100, text.cex=0.5, 
+plot.topicspace <- function(obj, i=1, j=2, author=NA, idx=NA, text.cex=0.5, 
                             pt.cex=0.1, scale=3, ...) {
   x <- obj$um[,i]
   y <- obj$um[,j]
@@ -70,7 +70,8 @@ plot.topicspace <- function(obj, i=1, j=2, author=NA, limit=100, text.cex=0.5,
   plot(x, y, type='n', bty='n', xaxt='n', yaxt='n', xlab=NA, ylab=NA, ...)
   points(x, y, pch=19, cex=pt.cex, col='grey')
   if (is.na(author)) {
-    text(x[1:limit], y[1:limit], labels=obj$index$word[1:limit], cex=text.cex)
+    if (all(is.na(idx))) { idx <- 1:100 }
+    text(x[idx], y[idx], labels=obj$index$word[idx], cex=text.cex)
   } else {
     if (is.numeric(author)) {
       author <- names(obj$by.author)[author]

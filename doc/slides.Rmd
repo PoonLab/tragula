@@ -12,6 +12,27 @@ output:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_knit$set(root.dir="~/git/tragula")
+```
+
+```{r echo=FALSE}
+# load faculty information
+files <- c("data/acb.tsv", "data/biochem.tsv", "data/epibio.tsv", 
+           "data/mbp.tsv", "data/mimm.tsv", "data/palm.tsv", 
+           "data/ppharm.tsv")
+fac <- do.call(rbind, lapply(files, function(f) {
+  dept <- gsub("\\.tsv", "", basename(f))
+  tsv <- read.csv(f, sep='\t')
+  tsv <- tsv[,1:4]
+  names(tsv) <- c("lastname", "forename", "initials", "query")
+  tsv$affil <- dept
+  tsv
+  }))
+# make some more convenient labels
+fac$labels <- paste(substr(fac$forename, 1, 1),
+                    substr(fac$lastname, 1, 4), sep="")
+  #paste(fac$initials, substr(fac$lastname, 2, 2), sep="")
+fac$filename <- gsub(" ", "_", paste(fac$lastname, fac$forename, sep="_"))
 ```
 
 ## Expertise mapping
@@ -69,12 +90,77 @@ knitr::opts_chunk$set(echo = FALSE)
 
 ---
 
+```{r echo=FALSE, message=FALSE, cache=TRUE}
+index <- read.csv("results/b7_index.csv")
+require(wordcloud, quietly=TRUE)
+set.seed(3)
+wordcloud(index$word[1:200], index$count[1:200], 
+          colors=hcl.colors(20, 'Berlin'), random.color=TRUE)
+```
+<center>
+200 most frequent words in corpus of all B7 faculty
+</center>
+
+
+---
+
 ## Term-document matrix
 
 * Count the co-occurrences of words per document (title+keywords+abstract)
+  * 51,103 words from 16,895 documents
 
-```{r echo=FALSE}
+```{r echo=FALSE, cache=TRUE}
+index <- read.csv("results/b7_index.csv")
+sparse <- read.csv("results/b7_cooccur.csv", header=F)
+names(sparse) <- c('doc.idx', 'word.idx', 'count')
 
+top5 <- sparse[sparse$word.idx < 5, ]  # most frequent words
+totals <- sapply(split(top5$count, top5$doc.idx), sum)
+top10 <- unique(top5$doc.idx)[order(totals, decreasing = TRUE)[1:10]]
+
+temp <- sparse[sparse$word.idx < 5 & sparse$doc.idx %in% top10, ]
+temp$doc.idx <- as.integer(as.factor(temp$doc.idx))  # renumber
+tdm <- matrix(0, nrow=5, ncol=10)
+rownames(tdm) <- index$word[1:5]
+colnames(tdm) <- paste("D", 1:10, sep="")
+for (row in 1:nrow(temp)) {
+  tdm[temp$word.idx[row]+1, temp$doc.idx[row]] <- temp$count[row]
+}
+knitr::kable(tdm, "html")
 ```
 
+---
 
+```{r echo=FALSE, cache=TRUE, message=FALSE}
+source("scripts/topicspace.R")
+ts <- topicspace(
+  index.path = "results/b7_index.csv",
+  cooccur.path = "results/b7_cooccur.csv",
+  author.path = "results/b7_counts.json",
+  max.words=10000, n.comp=3)
+```
+
+```{r message=FALSE}
+set.seed(2)
+plot(ts, text.cex=0.7, idx=sample(1:1e4, 100))  # calls plot.topicspace()
+```
+<center>
+We calculate the cosine distance for every pair of words and then apply UMAP to the distance matrix to project words into a "topicspace".
+</center>
+
+---
+
+```{r}
+source("scripts/visualize.R")
+idx <- match(names(ts$by.author), fac$filename)
+labels <- fac$label[idx]
+groups <- fac$affil[idx]
+pal <- hcl.colors(n=7, palette="Dark3")
+colors <- pal[as.integer(as.factor(groups))]
+```
+
+---
+
+```{r cache=TRUE}
+load("results/b7_wdist_10E4.RData")
+```
