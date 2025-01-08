@@ -150,7 +150,7 @@ We calculate the cosine distance for every pair of words and then apply UMAP to 
 
 ---
 
-```{r}
+```{r message=FALSE}
 source("scripts/visualize.R")
 idx <- match(names(ts$by.author), fac$filename)
 labels <- fac$label[idx]
