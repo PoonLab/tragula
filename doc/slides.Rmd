@@ -150,17 +150,51 @@ We calculate the cosine distance for every pair of words and then apply UMAP to 
 
 ---
 
-```{r message=FALSE}
-source("scripts/visualize.R")
-idx <- match(names(ts$by.author), fac$filename)
-labels <- fac$label[idx]
-groups <- fac$affil[idx]
-pal <- hcl.colors(n=7, palette="Dark3")
-colors <- pal[as.integer(as.factor(groups))]
+```{r fig.width=10, fig.height=5, out.width="100%"}
+par(mfrow=c(1,2))  # side-by-side format
+plot(ts, author=39)  # plot(ts, author="Poon_Art")
+plot(ts, author=77)
 ```
+<center>
+We can then map the word frequency distribution for each author's corpus to this topic space to produce a "fingerprint".
+</center>
+
+---
+
+## Wasserstein metric
+
+* Each fingerprint is a discrete probability distribution.
+  * The Wasserstein metric or Earth mover's distance quantifies the smallest amount of work needed to reshape one distribution to another.
+* Comparing all pairs of fingerprints yields a distance matrix of authors.
+* There are numerous ways of visualizing this matrix --- I favoured a k-nearest neighbours graph.
 
 ---
 
 ```{r cache=TRUE}
+# this takes a long time to compute
 load("results/b7_wdist_10E4.RData")
 ```
+<<<<<<< HEAD
+=======
+
+```{r message=FALSE, warning=FALSE, fig.width=10, fig.height=7}
+source("scripts/visualize.R")
+idx <- match(names(ts$by.author), fac$filename)
+labels <- fac$label[idx]
+groups <- fac$affil[idx]
+g <- make.knn(wdist, k=3)
+
+require(r2d3, quietly = TRUE)
+r2d3(data=export.json(g, labels, groups), script="js/graph.js", d3_version="4")
+```
+
+---
+
+## Further work
+
+* Clustering analysis, *i.e.*, community detection
+  * Identify research themes by mapping back to topicspace.
+* Build an interactive web animation
+* Finish writing this up and submit a manuscript.
+* Finish collecting data for all of Schulich (clinical departments are big).
+>>>>>>> 780a0d5b396bcdfee64eb42f350b6917c03956fd
