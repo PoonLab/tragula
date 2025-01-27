@@ -32,6 +32,22 @@ topicspace <- function(index.path, cooccur.path, author.path,
   stopifnot(ncol(ccm)==3, apply(ccm, 2, class)=="integer")
   smx <- Matrix::sparseMatrix(i=ccm[,1], j=ccm[,2], x=1, index1=FALSE)
   
+  # remove duplicate rows (duplicated documents)
+  checksums <- apply(smx, 1, function(x) sum((1:ncol(smx))[which(x==1)]))
+  dups <- which(duplicated(checksums))  # indices of possible duplicate rows
+  remove.idx <- c()
+  for (csum in unique(checksums[dups])) {
+    # verify if rows (documents) are actually duplicates
+    r.idx <- which(checksums==csum)
+    rows <- smx[r.idx, ]
+    mx <- as.matrix(rows)  # should be safe to expand to non-sparse format
+    my.dups <- duplicated(mx, MARGIN=1)
+    if (any(my.dups)) {
+      remove.idx <- c(remove.idx, r.idx[my.dups])
+    }
+  }
+  smx <- smx[-remove.idx, ]  # remove duplicate rows
+  
   # generate cosine distance matrix
   d1 <- wordspace::dist.matrix(t(smx)[1:max.words,], as.dist=TRUE)
   u1 <- uwot::umap(d1, n_components=n.comp, ...)  # run UMAP
@@ -63,15 +79,17 @@ topicspace <- function(index.path, cooccur.path, author.path,
 #' @param scale:  numeric, scaling factor for author-specific points
 #' @param ...:  other options passed to the initial call to plot()
 plot.topicspace <- function(obj, i=1, j=2, author=NA, idx=NA, text.cex=0.5, 
-                            pt.cex=0.1, scale=3, ...) {
+                            pt.cex=0.1, scale=3, xpd=NA, pt.col='grey', 
+                            text.col='black', ...) {
   x <- obj$um[,i]
   y <- obj$um[,j]
   par(mar=rep(1,4))
   plot(x, y, type='n', bty='n', xaxt='n', yaxt='n', xlab=NA, ylab=NA, ...)
-  points(x, y, pch=19, cex=pt.cex, col='grey')
+  points(x, y, pch=19, cex=pt.cex, col=pt.col)
   if (is.na(author)) {
     if (all(is.na(idx))) { idx <- 1:100 }
-    text(x[idx], y[idx], labels=obj$index$word[idx], cex=text.cex)
+    text(x[idx], y[idx], labels=obj$index$word[idx], cex=text.cex, xpd=xpd, 
+         col=text.col)
   } else {
     if (is.numeric(author)) {
       author <- names(obj$by.author)[author]

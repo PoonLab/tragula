@@ -64,8 +64,10 @@ source("scripts/visualize.R")
 index <- read.csv("results/b7_index.csv")
 require(wordcloud, quietly = TRUE)
 set.seed(70)
+pdf("faculty-cloud.pdf", width=6, height=6)
 wordcloud(index$word[1:200], index$count[1:200], 
           colors=hcl.colors(20, 'Berlin'), random.color=TRUE)
+dev.off()
 ```
 
 ```{r cache=TRUE}

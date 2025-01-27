@@ -55,7 +55,20 @@ make.knn <- function(wdist, k=3, cutoff=NA, names=NA, undirected=TRUE) {
     nn <- nn[row[nn] <= cutoff]  # exclude edges that are too long
     adj[i,nn] <- 1
   }
-  mode <- ifelse(undirected, "undirected", "directed")
+  
+  mode <- 'directed'
+  if (undirected) {
+    # since igraph 1.6.0, adjacency matrix must be symmetric 
+    mode <- 'undirected'
+    v <- igraph_version()
+    vparts <- strsplit(v, "\\.")[[1]]
+    major <- vparts[1]
+    minor <- vparts[2]
+    if (major > 1 | (major == 1 & minor >= 6)) {
+      mode <- 'max'
+    }
+  }
+  
   g <- igraph::graph_from_adjacency_matrix(adj, diag=F, mode=mode)
   if (mode=="directed") {
     idx <- which(as.logical(adj))
