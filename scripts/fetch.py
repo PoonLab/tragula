@@ -61,7 +61,7 @@ def fetch(query, retmax=100):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument("query", type=str, help="Author query")
-    parser.add_argument("--email", type=str, default="apoon42@uwo.ca",
+    parser.add_argument("--email", type=str, required=True,
                         help="e-mail address for Entrez transactions")
     parser.add_argument("-o", "--outfile", type=argparse.FileType('w'),
                      default=sys.stdout, help="Output file, defaults to stdout.")
