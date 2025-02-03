@@ -33,7 +33,10 @@ topicspace <- function(index.path, cooccur.path, author.path,
   smx <- Matrix::sparseMatrix(i=ccm[,1], j=ccm[,2], x=1, index1=FALSE)
   
   # remove duplicate rows (duplicated documents)
-  checksums <- apply(smx, 1, function(x) sum((1:ncol(smx))[which(x==1)]))
+  checksums <- sapply(1:nrow(smx), function(i) {
+    sum(which(smx[i,]==1))
+  })
+  
   dups <- which(duplicated(checksums))  # indices of possible duplicate rows
   remove.idx <- c()
   for (csum in unique(checksums[dups])) {

@@ -20,6 +20,18 @@ def extract(article, max_words=1000):
     # parse title and abstract text
     medline = article["MedlineCitation"]
     article = medline["Article"]
+    
+    # try to retrieve year of publication
+    try:
+        year = article["Journal"]['JournalIssue']['PubDate']['Year']
+    except KeyError:
+        # backup
+        try:
+            year = article["ArticleDate"][0]['Year']
+        except:
+            print(article)
+            raise
+        
     authors = []
     for aut in article["AuthorList"]:
         if "CollectiveName" in aut:
@@ -44,7 +56,7 @@ def extract(article, max_words=1000):
     for el in keylist:
         keywords.extend([str(kw) for kw in el])
 
-    return {'pmid': str(medline["PMID"]), 'authors': authors, 'title': title,
+    return {'pmid': str(medline["PMID"]), 'year': year, 'authors': authors, 'title': title,
             'abstract': abstext, 'keywords': keywords}
 
 
